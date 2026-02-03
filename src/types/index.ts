@@ -174,11 +174,22 @@ export interface ShipSpec {
 // DERIVED / COMPILED DATA
 // ============================================================================
 
+export interface PolygonBounds {
+  minX: number;
+  maxX: number;
+  minZ: number;
+  maxZ: number;
+  area: number; // Approximate area in m²
+}
+
 export interface DeckFootprint {
   deckIndex: number;
   yMin: number;
   yMax: number;
+  floorY: number; // Alias for yMin (floor level)
+  ceilY: number; // Alias for yMax (ceiling level)
   polygon: Vector2[]; // 2D polygon in X/Z plane
+  polygonBounds: PolygonBounds; // Cached bounds for rendering
 }
 
 export interface ValidatedRoom extends RoomSpec {

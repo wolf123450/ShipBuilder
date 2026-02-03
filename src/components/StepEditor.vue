@@ -26,7 +26,7 @@
         <DeckEditor />
       </div>
       <div v-else-if="activeTab === 2" class="p-4">
-        <RoomEditor />
+        <DeckPlacementEditor />
       </div>
       <div v-else-if="activeTab === 3" class="p-4">
         <ExportEditor />
@@ -39,7 +39,7 @@
 import { ref } from "vue";
 import HullEditor from "./editors/HullEditor.vue";
 import DeckEditor from "./editors/DeckEditor.vue";
-import RoomEditor from "./editors/RoomEditor.vue";
+import DeckPlacementEditor from "./editors/DeckPlacementEditor.vue";
 import ExportEditor from "./editors/ExportEditor.vue";
 
 const activeTab = ref(0);

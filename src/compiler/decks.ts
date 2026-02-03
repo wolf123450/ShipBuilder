@@ -3,7 +3,7 @@
  * Generates deck footprints from hull geometry
  */
 
-import { DeckFootprint, Vector2 } from "@core/index";
+import { DeckFootprint, Vector2, PolygonBounds } from "@core/index";
 import { HullVolume } from "./hull";
 
 /**
@@ -16,6 +16,34 @@ export interface DeckCompilationParams {
   hullVolume: HullVolume;
   footprintMargin?: number; // Inward margin from hull boundary
   resolution?: number; // Sampling resolution in meters
+}
+
+/**
+ * Calculate bounds and area of a 2D polygon
+ */
+function calculatePolygonBounds(polygon: Vector2[]): PolygonBounds {
+  let minX = Infinity,
+    maxX = -Infinity;
+  let minZ = Infinity,
+    maxZ = -Infinity;
+
+  for (const v of polygon) {
+    minX = Math.min(minX, v.x);
+    maxX = Math.max(maxX, v.x);
+    minZ = Math.min(minZ, v.z);
+    maxZ = Math.max(maxZ, v.z);
+  }
+
+  // Approximate area using shoelace formula
+  let area = 0;
+  for (let i = 0; i < polygon.length; i++) {
+    const v1 = polygon[i];
+    const v2 = polygon[(i + 1) % polygon.length];
+    area += v1.x * v2.z - v2.x * v1.z;
+  }
+  area = Math.abs(area) / 2;
+
+  return { minX, maxX, minZ, maxZ, area };
 }
 
 /**
@@ -50,11 +78,16 @@ export function compileDeckFootprints(params: DeckCompilationParams): DeckFootpr
       polygon = shrinkPolygon(polygon, footprintMargin);
     }
 
+    const polygonBounds = calculatePolygonBounds(polygon);
+
     footprints.push({
       deckIndex: i,
       yMin,
       yMax,
+      floorY: yMin,
+      ceilY: yMax,
       polygon,
+      polygonBounds,
     });
   }
 
