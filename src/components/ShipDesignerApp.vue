@@ -19,8 +19,8 @@
     <!-- Main content area -->
     <div class="flex-1 flex overflow-hidden">
       <!-- Sidebar editor -->
-      <aside class="w-96 bg-ship-navy border-r border-ship-slate overflow-y-auto">
-        <ShipEditor />
+      <aside class="w-96 bg-ship-navy border-r border-ship-slate overflow-y-auto flex flex-col">
+        <StepEditor />
       </aside>
 
       <!-- 3D preview canvas -->
@@ -33,15 +33,15 @@
 
 <script setup lang="ts">
 import { useShipStore } from "@stores/shipStore";
-import ShipEditor from "@components/ShipEditor.vue";
+import StepEditor from "@components/StepEditor.vue";
 import Preview3D from "@components/Preview3D.vue";
 
 const shipStore = useShipStore();
 
 function handleExport() {
-  // TODO: Implement export functionality
-  console.log("Export clicked");
-  alert("Export functionality will be implemented soon");
+  // Export button is now handled via the ExportEditor step 4
+  // This can be removed or used as a quick export shortcut
+  console.log("Export button clicked - use Step 4 in the editor");
 }
 </script>
 
