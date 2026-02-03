@@ -7,6 +7,9 @@ import { ShipSpec, DerivedShipData, ValidatedRoom } from "@core/index";
 import { createHullVolume } from "./hull";
 import { compileDeckFootprints, DeckCompilationParams } from "./decks";
 
+// Re-export mesh baker for convenience
+export { bakeHullMesh, createPolygonMesh, createRoomMesh, type BakedMesh } from "./mesh";
+
 /**
  * Compile a ship specification into derived data
  * This is the main entry point for the compilation pipeline

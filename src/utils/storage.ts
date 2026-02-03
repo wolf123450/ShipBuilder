@@ -2,7 +2,7 @@
  * Storage utilities for persisting ship specs
  */
 
-import { ShipSpec } from "@types/index";
+import { ShipSpec } from "@core/index";
 
 const STORAGE_KEY = "ship-design-toolkit:ship-spec";
 const SHIP_LIBRARY_KEY = "ship-design-toolkit:library";
