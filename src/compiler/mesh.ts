@@ -154,7 +154,7 @@ function extractSurface(
   const addQuad = (corners: [number, number, number][]): void => {
     const [p0, p1, p2, p3] = corners.map(([x, y, z]) => getOrAddVertex(x, y, z));
     // Ensure consistent winding order (counterclockwise when viewed from outside)
-    indices.push(p0, p1, p2, p0, p2, p3);
+    indices.push(p0, p2, p1, p0, p3, p2);
   };
 
   // Process each voxel and create surface faces
@@ -164,63 +164,63 @@ function extractSurface(
         const current = getVoxel(x, y, z);
         if (current === 0) continue;
 
-        // Right face (x+1)
+        // Right face (x+1) - normal points +X
         if (getVoxel(x + 1, y, z) === 0) {
           addQuad([
-            [x + 1, y, z],
-            [x + 1, y + 1, z],
-            [x + 1, y + 1, z + 1],
             [x + 1, y, z + 1],
+            [x + 1, y + 1, z + 1],
+            [x + 1, y + 1, z],
+            [x + 1, y, z],
           ]);
         }
 
-        // Left face (x-1)
+        // Left face (x-1) - normal points -X
         if (getVoxel(x - 1, y, z) === 0) {
           addQuad([
-            [x, y, z + 1],
-            [x, y + 1, z + 1],
-            [x, y + 1, z],
             [x, y, z],
+            [x, y + 1, z],
+            [x, y + 1, z + 1],
+            [x, y, z + 1],
           ]);
         }
 
-        // Top face (y+1)
+        // Top face (y+1) - normal points +Y
         if (getVoxel(x, y + 1, z) === 0) {
           addQuad([
-            [x, y + 1, z],
-            [x + 1, y + 1, z],
-            [x + 1, y + 1, z + 1],
             [x, y + 1, z + 1],
+            [x + 1, y + 1, z + 1],
+            [x + 1, y + 1, z],
+            [x, y + 1, z],
           ]);
         }
 
-        // Bottom face (y-1)
+        // Bottom face (y-1) - normal points -Y
         if (getVoxel(x, y - 1, z) === 0) {
           addQuad([
-            [x, y, z + 1],
-            [x + 1, y, z + 1],
-            [x + 1, y, z],
             [x, y, z],
+            [x + 1, y, z],
+            [x + 1, y, z + 1],
+            [x, y, z + 1],
           ]);
         }
 
-        // Front face (z+1)
+        // Front face (z+1) - normal points +Z
         if (getVoxel(x, y, z + 1) === 0) {
           addQuad([
-            [x, y, z + 1],
-            [x, y + 1, z + 1],
-            [x + 1, y + 1, z + 1],
             [x + 1, y, z + 1],
+            [x + 1, y + 1, z + 1],
+            [x, y + 1, z + 1],
+            [x, y, z + 1],
           ]);
         }
 
-        // Back face (z-1)
+        // Back face (z-1) - normal points -Z
         if (getVoxel(x, y, z - 1) === 0) {
           addQuad([
-            [x + 1, y, z],
-            [x + 1, y + 1, z],
-            [x, y + 1, z],
             [x, y, z],
+            [x, y + 1, z],
+            [x + 1, y + 1, z],
+            [x + 1, y, z],
           ]);
         }
       }
