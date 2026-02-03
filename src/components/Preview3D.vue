@@ -211,6 +211,8 @@ function updateMesh() {
       const material = new THREE.MeshPhongMaterial({
         color: 0x3b82f6,
         shininess: 100,
+        side: THREE.FrontSide, // Only show front faces
+        flatShading: false, // Use smooth shading
       });
 
       hullMesh = new THREE.Mesh(bakedHull.geometry, material);

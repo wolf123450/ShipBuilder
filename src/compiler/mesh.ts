@@ -94,7 +94,10 @@ export function bakeHullMesh(params: MeshBakingParams): BakedMesh {
   const geometry = new THREE.BufferGeometry();
   geometry.setAttribute("position", new THREE.BufferAttribute(new Float32Array(positions), 3));
   geometry.setIndex(new THREE.BufferAttribute(new Uint32Array(indices), 1));
+  
+  // Compute normals for proper lighting and smoothing
   geometry.computeVertexNormals();
+  geometry.normalizeNormals();
 
   return {
     geometry,
@@ -150,6 +153,7 @@ function extractSurface(
    */
   const addQuad = (corners: [number, number, number][]): void => {
     const [p0, p1, p2, p3] = corners.map(([x, y, z]) => getOrAddVertex(x, y, z));
+    // Ensure consistent winding order (counterclockwise when viewed from outside)
     indices.push(p0, p1, p2, p0, p2, p3);
   };
 
