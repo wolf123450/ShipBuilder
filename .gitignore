@@ -1,0 +1,27 @@
+node_modules
+.DS_Store
+dist
+dist-ssr
+coverage
+*.local
+.env
+.env.local
+.env.*.local
+*.log
+*.tsbuildinfo
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# Build artifacts
+.turbo
+.next
+out
+
+# Testing
+.nyc_output
+.c8rc.json
