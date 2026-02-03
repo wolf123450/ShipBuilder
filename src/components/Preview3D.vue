@@ -39,6 +39,10 @@
           <input v-model="showRooms" type="checkbox" @change="updateMesh" class="w-3 h-3" />
           <span>Rooms</span>
         </label>
+        <label class="flex items-center gap-1 cursor-pointer">
+          <input v-model="showNormals" type="checkbox" @change="updateNormals" class="w-3 h-3" />
+          <span>Normals (Debug)</span>
+        </label>
       </div>
     </div>
 
@@ -76,12 +80,14 @@ let animationId: number | null = null;
 let hullMesh: THREE.Mesh | null = null;
 let deckMeshes: THREE.Mesh[] = [];
 let roomMeshes: THREE.Mesh[] = [];
+let normalHelper: THREE.LineSegments | null = null;
 
 // UI state
 const meshResolution = ref(2.0);
 const showHull = ref(true);
 const showDecks = ref(true);
 const showRooms = ref(true);
+const showNormals = ref(false);
 const meshVertexCount = ref(0);
 
 /**
@@ -222,6 +228,9 @@ function updateMesh() {
 
       meshVertexCount.value = (bakedHull.geometry.getAttribute("position").array as Float32Array).length / 3;
       console.log("Hull mesh added to scene, vertex count:", meshVertexCount.value);
+      
+      // Update normal visualization if enabled
+      updateNormals();
     } catch (error) {
       console.error("Failed to bake hull mesh:", error);
     }
@@ -278,6 +287,57 @@ function updateMesh() {
       } catch (error) {
         console.warn(`Failed to create room ${room.id} mesh:`, error);
       }
+    }
+  }
+}
+
+/**
+ * Update normal visualization
+ */
+function updateNormals() {
+  if (!scene || !hullMesh) return;
+
+  // Remove existing normal helper
+  if (normalHelper) {
+    scene.remove(normalHelper);
+    normalHelper = null;
+  }
+
+  // Add new normal helper if enabled
+  if (showNormals.value && hullMesh.geometry) {
+    // Create normal visualization using line segments
+    const geometry = hullMesh.geometry;
+    const positions = geometry.getAttribute("position");
+    const normals = geometry.getAttribute("normal");
+
+    if (positions && normals) {
+      const normalLength = 1.0; // Length of normal vectors to display
+      const lines = new THREE.BufferGeometry();
+      const linePositions: number[] = [];
+
+      // For each vertex, draw a line from vertex to vertex+normal
+      for (let i = 0; i < positions.count; i++) {
+        const px = positions.getX(i);
+        const py = positions.getY(i);
+        const pz = positions.getZ(i);
+
+        const nx = normals.getX(i);
+        const ny = normals.getY(i);
+        const nz = normals.getZ(i);
+
+        // Start point
+        linePositions.push(px, py, pz);
+        // End point
+        linePositions.push(px + nx * normalLength, py + ny * normalLength, pz + nz * normalLength);
+      }
+
+      lines.setAttribute("position", new THREE.BufferAttribute(new Float32Array(linePositions), 3));
+
+      const material = new THREE.LineBasicMaterial({ color: 0x00ff00 });
+      normalHelper = new THREE.LineSegments(lines, material);
+      scene.add(normalHelper);
+
+      console.log(`Added normal visualization for ${positions.count} vertices`);
     }
   }
 }
