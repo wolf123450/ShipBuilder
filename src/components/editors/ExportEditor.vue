@@ -71,12 +71,24 @@
     <div class="bg-ship-dark border border-ship-slate rounded p-4 space-y-4">
       <div class="flex items-center justify-between mb-3">
         <h3 class="font-semibold text-lg">Local Saves</h3>
-        <button
-          @click="saveLocal"
-          class="px-3 py-1 bg-ship-accent hover:bg-blue-600 rounded text-white text-sm font-semibold"
-        >
-          Save Current
-        </button>
+        <div class="flex gap-2">
+          <button
+            @click="importShip"
+            class="px-3 py-1 bg-ship-accent hover:bg-blue-600 rounded text-white text-sm font-semibold"
+          >
+            Import
+          </button>
+          <button
+            @click="saveLocal"
+            class="px-3 py-1 bg-ship-accent hover:bg-blue-600 rounded text-white text-sm font-semibold"
+          >
+            Save Current
+          </button>
+        </div>
+      </div>
+
+      <div v-if="importError" class="bg-red-900 border border-red-700 rounded p-3 text-red-200 text-sm">
+        {{ importError }}
       </div>
 
       <div class="space-y-2 max-h-48 overflow-y-auto">
@@ -89,12 +101,20 @@
             <strong class="block">{{ save.name }}</strong>
             <span class="text-xs text-gray-500">{{ formatDate(save.timestamp) }}</span>
           </div>
-          <button
-            @click="loadLocal(save.id)"
-            class="text-ship-accent hover:text-blue-300 text-sm font-semibold"
-          >
-            Load
-          </button>
+          <div class="flex gap-2">
+            <button
+              @click="loadLocal(save.id)"
+              class="text-ship-accent hover:text-blue-300 text-sm font-semibold"
+            >
+              Load
+            </button>
+            <button
+              @click="deleteLocal(save.id)"
+              class="text-red-400 hover:text-red-300 text-sm font-semibold"
+            >
+              Delete
+            </button>
+          </div>
         </div>
 
         <div v-if="saves.length === 0" class="text-gray-400 text-sm py-4 text-center">
@@ -131,15 +151,18 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
 import { useShipStore } from "@stores/shipStore";
-import { exportAsJSON, exportAsYAML, downloadFile } from "@utils/export";
-import { saveShipToLibrary, loadLibrary, loadShipFromStorage } from "@utils/storage";
+import { exportAsJSON, exportAsYAML, downloadFile, exportAsGLB, triggerFileInput, importFromFile } from "@utils/export";
+import { saveShipToLibrary, loadLibrary, loadShipFromStorage, deleteFromLibrary } from "@utils/storage";
+import * as THREE from "three";
 
 const shipStore = useShipStore();
 const shipName = ref(shipStore.shipSpec.ship.meta.name);
 const shipDescription = ref(shipStore.shipSpec.ship.meta.description || "");
 const saves = ref<Array<{ id: string; name: string; timestamp: string }>>([]);
+const isExporting = ref(false);
+const importError = ref("");
 
-const canExportGLB = computed(() => false); // Not yet implemented
+const canExportGLB = computed(() => true); // GLB export now available
 
 /**
  * Update ship name
@@ -174,10 +197,48 @@ async function exportYAML() {
 }
 
 /**
- * Export as GLB (placeholder)
+ * Export as GLB (three.js binary format)
  */
-function exportGLB() {
-  alert("GLB export coming soon!");
+async function exportGLB() {
+  try {
+    isExporting.value = true;
+    
+    // We need to get the mesh from the Preview3D component
+    // For now, create a temporary scene with the compiled mesh data
+    const scene = new THREE.Scene();
+    scene.name = shipStore.shipSpec.ship.meta.name;
+
+    // Get the baked hull mesh and add it to the export scene
+    if (shipStore.derivedData) {
+      // We'll collect mesh data from the store's compiled data
+      // and recreate it here for export
+      const { hullVolume } = shipStore.derivedData;
+      if (hullVolume) {
+        const { bakeHullMesh } = await import("@compiler/mesh");
+        const bakedHull = bakeHullMesh({
+          hullVolume,
+          resolution: 2.0,
+          maxResolution: 60,
+        });
+
+        const material = new THREE.MeshPhongMaterial({
+          color: 0x3b82f6,
+          shininess: 100,
+        });
+
+        const mesh = new THREE.Mesh(bakedHull.geometry, material);
+        scene.add(mesh);
+      }
+    }
+
+    const filename = `${shipStore.shipSpec.ship.meta.name.replace(/\s+/g, "_")}.glb`;
+    await exportAsGLB(scene, filename);
+  } catch (error) {
+    console.error("GLB export failed:", error);
+    alert("Failed to export GLB: " + String(error));
+  } finally {
+    isExporting.value = false;
+  }
 }
 
 /**
@@ -193,13 +254,44 @@ function saveLocal() {
  * Load from local library
  */
 function loadLocal(id: string) {
-  const saves = loadLibrary();
-  const save = saves.find((s) => s.id === id);
+  const library = loadLibrary();
+  const save = library.find((s) => s.id === id);
   if (save) {
     shipStore.loadShip(save.spec);
     shipName.value = save.spec.ship.meta.name;
     shipDescription.value = save.spec.ship.meta.description || "";
   }
+}
+
+/**
+ * Delete from local library
+ */
+function deleteLocal(id: string) {
+  if (confirm("Are you sure you want to delete this save?")) {
+    deleteFromLibrary(id);
+    loadSaves();
+  }
+}
+
+/**
+ * Import ship from file
+ */
+function importShip() {
+  triggerFileInput(async (file) => {
+    try {
+      importError.value = "";
+      const spec = await importFromFile(file);
+      if (spec) {
+        shipStore.loadShip(spec);
+        shipName.value = spec.ship.meta.name;
+        shipDescription.value = spec.ship.meta.description || "";
+      } else {
+        importError.value = "Failed to parse file. Ensure it's valid JSON or YAML format.";
+      }
+    } catch (error) {
+      importError.value = "Import error: " + String(error);
+    }
+  });
 }
 
 /**

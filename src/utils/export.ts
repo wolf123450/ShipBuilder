@@ -3,6 +3,8 @@
  */
 
 import { ShipSpec, ExportOptions } from "@core/index";
+import * as THREE from "three";
+import { GLTFExporter } from "three/examples/jsm/exporters/GLTFExporter.js";
 
 /**
  * Export ship spec as JSON
@@ -75,3 +77,41 @@ export function triggerFileInput(callback: (file: File) => void): void {
   };
   input.click();
 }
+
+/**
+ * Export Three.js scene/mesh as GLB
+ */
+export async function exportAsGLB(scene: THREE.Scene | THREE.Mesh, filename: string): Promise<void> {
+  const exporter = new GLTFExporter();
+
+  // Create a temporary scene if only a mesh was provided
+  const exportObject = scene instanceof THREE.Mesh ? (() => {
+    const tempScene = new THREE.Scene();
+    tempScene.add(scene);
+    return tempScene;
+  })() : scene;
+
+  return new Promise((resolve, reject) => {
+    exporter.parse(
+      exportObject,
+      (gltf) => {
+        // gltf is an ArrayBuffer when binary: true
+        const blob = new Blob([gltf], { type: "model/gltf-binary" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = filename.endsWith(".glb") ? filename : filename + ".glb";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        resolve();
+      },
+      (error) => {
+        reject(error);
+      },
+      { binary: true }
+    );
+  });
+}
+
