@@ -159,7 +159,7 @@
 <script setup lang="ts">
 import { ref, reactive } from "vue";
 import { useShipStore } from "@stores/shipStore";
-import { RoomType } from "@core/index";
+import { RoomType, RoomShapeType } from "@core/index";
 
 const shipStore = useShipStore();
 const showAddForm = ref(false);
@@ -202,7 +202,7 @@ function addRoom() {
     type: newRoom.type as RoomType,
     deck: newRoom.deck,
     shape: {
-      type: "rect",
+      type: RoomShapeType.Rect,
       size: [newRoom.width, newRoom.depth],
     },
     position: {

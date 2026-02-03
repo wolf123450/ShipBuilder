@@ -93,7 +93,7 @@ export function bakeHullMesh(params: MeshBakingParams): BakedMesh {
 
 /**
  * Extract surface triangles from voxel grid
- * Uses a simple greedy approach: check each voxel's 6 faces for inside/outside transitions
+ * Uses surface extraction: check each voxel's 6 faces for inside/outside transitions
  */
 function extractSurface(
   voxels: Uint8Array,
@@ -120,7 +120,7 @@ function extractSurface(
   };
 
   /**
-   * Helper: add vertex if not already added
+   * Helper: add vertex
    */
   const getOrAddVertex = (x: number, y: number, z: number): number => {
     const key = `${x},${y},${z}`;
@@ -134,39 +134,79 @@ function extractSurface(
     return vertexMap.get(key)!;
   };
 
-  // For each voxel, check if it's on the surface
+  /**
+   * Add a quad face as two triangles
+   */
+  const addQuad = (corners: [number, number, number][]): void => {
+    const [p0, p1, p2, p3] = corners.map(([x, y, z]) => getOrAddVertex(x, y, z));
+    indices.push(p0, p1, p2, p0, p2, p3);
+  };
+
+  // Process each voxel and create surface faces
   for (let x = 0; x < width; x++) {
     for (let y = 0; y < height; y++) {
       for (let z = 0; z < depth; z++) {
         const current = getVoxel(x, y, z);
+        if (current === 0) continue;
 
-        // Check 6 faces
-        const faces = [
-          { dx: 1, dy: 0, dz: 0, normal: [1, 0, 0] }, // Right
-          { dx: -1, dy: 0, dz: 0, normal: [-1, 0, 0] }, // Left
-          { dx: 0, dy: 1, dz: 0, normal: [0, 1, 0] }, // Top
-          { dx: 0, dy: -1, dz: 0, normal: [0, -1, 0] }, // Bottom
-          { dx: 0, dy: 0, dz: 1, normal: [0, 0, 1] }, // Front
-          { dx: 0, dy: 0, dz: -1, normal: [0, 0, -1] }, // Back
-        ];
+        // Right face (x+1)
+        if (getVoxel(x + 1, y, z) === 0) {
+          addQuad([
+            [x + 1, y, z],
+            [x + 1, y + 1, z],
+            [x + 1, y + 1, z + 1],
+            [x + 1, y, z + 1],
+          ]);
+        }
 
-        for (const face of faces) {
-          const neighbor = getVoxel(x + face.dx, y + face.dy, z + face.dz);
+        // Left face (x-1)
+        if (getVoxel(x - 1, y, z) === 0) {
+          addQuad([
+            [x, y, z + 1],
+            [x, y + 1, z + 1],
+            [x, y + 1, z],
+            [x, y, z],
+          ]);
+        }
 
-          // If this is a surface boundary (inside/outside transition)
-          if (current === 1 && neighbor === 0) {
-            // Add quad as two triangles
-            // This is simplified; proper implementation would use corner vertices
-            const v0 = getOrAddVertex(x, y, z);
-            const v1 = getOrAddVertex(x + 1, y, z);
-            const v2 = getOrAddVertex(x + 1, y + 1, z);
-            const v3 = getOrAddVertex(x, y + 1, z);
+        // Top face (y+1)
+        if (getVoxel(x, y + 1, z) === 0) {
+          addQuad([
+            [x, y + 1, z],
+            [x + 1, y + 1, z],
+            [x + 1, y + 1, z + 1],
+            [x, y + 1, z + 1],
+          ]);
+        }
 
-            // Triangle 1
-            indices.push(v0, v1, v2);
-            // Triangle 2
-            indices.push(v0, v2, v3);
-          }
+        // Bottom face (y-1)
+        if (getVoxel(x, y - 1, z) === 0) {
+          addQuad([
+            [x, y, z + 1],
+            [x + 1, y, z + 1],
+            [x + 1, y, z],
+            [x, y, z],
+          ]);
+        }
+
+        // Front face (z+1)
+        if (getVoxel(x, y, z + 1) === 0) {
+          addQuad([
+            [x, y, z + 1],
+            [x, y + 1, z + 1],
+            [x + 1, y + 1, z + 1],
+            [x + 1, y, z + 1],
+          ]);
+        }
+
+        // Back face (z-1)
+        if (getVoxel(x, y, z - 1) === 0) {
+          addQuad([
+            [x + 1, y, z],
+            [x + 1, y + 1, z],
+            [x, y + 1, z],
+            [x, y, z],
+          ]);
         }
       }
     }
