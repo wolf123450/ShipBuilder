@@ -12,7 +12,7 @@ import {
   RoomShapeType,
   WindowStyle,
   DeckNamingScheme,
-} from "@types/index";
+} from "@core/index";
 
 describe("Ship Compiler", () => {
   const createMinimalSpec = () => ({

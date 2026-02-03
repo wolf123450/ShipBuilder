@@ -3,7 +3,7 @@
  * Responsible for converting hull spec into queryable geometry
  */
 
-import { HullSpec, Vector3, AABB, Vector2 } from "@types/index";
+import { HullSpec, Vector3, AABB, Vector2 } from "@core/index";
 
 /**
  * Represents a queryable hull volume

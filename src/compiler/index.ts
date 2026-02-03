@@ -3,7 +3,7 @@
  * Orchestrates the full compilation pipeline from ShipSpec to DerivedShipData
  */
 
-import { ShipSpec, DerivedShipData, ValidatedRoom } from "@types/index";
+import { ShipSpec, DerivedShipData, ValidatedRoom } from "@core/index";
 import { createHullVolume } from "./hull";
 import { compileDeckFootprints, DeckCompilationParams } from "./decks";
 

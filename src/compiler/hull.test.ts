@@ -4,7 +4,7 @@
 
 import { describe, it, expect } from "vitest";
 import { LoftedSpineHull, createHullVolume } from "@compiler/hull";
-import { HullType, HullSymmetry } from "@types/index";
+import { HullType, HullSymmetry } from "@core/index";
 
 describe("LoftedSpineHull", () => {
   const createTestHull = () => {

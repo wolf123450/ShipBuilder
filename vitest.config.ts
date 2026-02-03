@@ -19,7 +19,7 @@ export default defineConfig({
       "@components": path.resolve(__dirname, "./src/components"),
       "@compiler": path.resolve(__dirname, "./src/compiler"),
       "@stores": path.resolve(__dirname, "./src/stores"),
-      "@types": path.resolve(__dirname, "./src/types"),
+      "@core": path.resolve(__dirname, "./src/types"),
       "@utils": path.resolve(__dirname, "./src/utils"),
     },
   },

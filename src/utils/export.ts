@@ -2,7 +2,7 @@
  * Export utilities for ships
  */
 
-import { ShipSpec, ExportOptions } from "@types/index";
+import { ShipSpec, ExportOptions } from "@core/index";
 
 /**
  * Export ship spec as JSON

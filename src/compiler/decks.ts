@@ -3,7 +3,7 @@
  * Generates deck footprints from hull geometry
  */
 
-import { DeckFootprint, Vector2 } from "@types/index";
+import { DeckFootprint, Vector2 } from "@core/index";
 import { HullVolume } from "./hull";
 
 /**

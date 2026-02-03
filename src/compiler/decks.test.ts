@@ -5,7 +5,7 @@
 import { describe, it, expect } from "vitest";
 import { compileDeckFootprints, getDeckAtY, getDeckBounds } from "@compiler/decks";
 import { createHullVolume } from "@compiler/hull";
-import { HullType, HullSymmetry } from "@types/index";
+import { HullType, HullSymmetry } from "@core/index";
 
 describe("Deck Compilation", () => {
   const createTestParams = () => {

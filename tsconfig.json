@@ -18,7 +18,7 @@
       "@components/*": ["src/components/*"],
       "@compiler/*": ["src/compiler/*"],
       "@stores/*": ["src/stores/*"],
-      "@types/*": ["src/types/*"],
+      "@core/*": ["src/types/*"],
       "@utils/*": ["src/utils/*"]
     },
     "types": ["vite/client", "node", "vitest/globals"]

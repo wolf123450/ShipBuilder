@@ -15,7 +15,7 @@ import {
   WindowStyle,
   RoomType,
   RoomShapeType,
-} from "@types/index";
+} from "@core/index";
 import { compileShip } from "@compiler/index";
 
 /**
