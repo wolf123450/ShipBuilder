@@ -85,18 +85,29 @@ export async function exportAsGLB(scene: THREE.Scene | THREE.Mesh, filename: str
   const exporter = new GLTFExporter();
 
   // Create a temporary scene if only a mesh was provided
-  const exportObject = scene instanceof THREE.Mesh ? (() => {
-    const tempScene = new THREE.Scene();
-    tempScene.add(scene);
-    return tempScene;
-  })() : scene;
+  let exportObject: THREE.Scene;
+  if (scene instanceof THREE.Mesh) {
+    exportObject = new THREE.Scene();
+    exportObject.add(scene.clone());
+  } else {
+    exportObject = scene;
+  }
 
   return new Promise((resolve, reject) => {
     exporter.parse(
       exportObject,
-      (gltf) => {
+      (gltf: ArrayBuffer | { [key: string]: any }) => {
         // gltf is an ArrayBuffer when binary: true
-        const blob = new Blob([gltf], { type: "model/gltf-binary" });
+        let arrayBuffer: ArrayBuffer;
+        
+        if (gltf instanceof ArrayBuffer) {
+          arrayBuffer = gltf;
+        } else {
+          // Shouldn't happen with binary: true, but handle just in case
+          arrayBuffer = new TextEncoder().encode(JSON.stringify(gltf)).buffer;
+        }
+
+        const blob = new Blob([arrayBuffer], { type: "model/gltf-binary" });
         const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
         link.href = url;

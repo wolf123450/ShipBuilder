@@ -198,41 +198,52 @@ async function exportYAML() {
 
 /**
  * Export as GLB (three.js binary format)
+ * Note: For now, exports a simple hull mesh. Full export (decks/rooms) requires Preview3D integration.
  */
 async function exportGLB() {
   try {
     isExporting.value = true;
     
-    // We need to get the mesh from the Preview3D component
-    // For now, create a temporary scene with the compiled mesh data
     const scene = new THREE.Scene();
     scene.name = shipStore.shipSpec.ship.meta.name;
 
-    // Get the baked hull mesh and add it to the export scene
-    if (shipStore.derivedData) {
-      // We'll collect mesh data from the store's compiled data
-      // and recreate it here for export
-      const { hullVolume } = shipStore.derivedData;
-      if (hullVolume) {
-        const { bakeHullMesh } = await import("@compiler/mesh");
-        const bakedHull = bakeHullMesh({
-          hullVolume,
-          resolution: 2.0,
-          maxResolution: 60,
-        });
+    // Import mesh compilation functions
+    const { bakeHullMesh } = await import("@compiler/mesh");
+    const { createHullVolume } = await import("@compiler/hull");
 
-        const material = new THREE.MeshPhongMaterial({
-          color: 0x3b82f6,
-          shininess: 100,
-        });
+    // Create hull volume from current spec
+    const hullVolume = createHullVolume(shipStore.shipSpec.ship.hull);
 
-        const mesh = new THREE.Mesh(bakedHull.geometry, material);
-        scene.add(mesh);
-      }
+    if (!hullVolume) {
+      alert("Failed to create hull volume. Check ship hull parameters.");
+      return;
     }
+
+    // Bake hull mesh
+    const bakedHull = bakeHullMesh({
+      hullVolume,
+      resolution: 2.0,
+      maxResolution: 60,
+    });
+
+    if (!bakedHull?.geometry) {
+      alert("Failed to create hull geometry for export.");
+      return;
+    }
+
+    const hullMaterial = new THREE.MeshPhongMaterial({
+      color: 0x3b82f6,
+      shininess: 100,
+      side: THREE.FrontSide,
+    });
+
+    const hullMesh = new THREE.Mesh(bakedHull.geometry, hullMaterial);
+    hullMesh.name = "Hull";
+    scene.add(hullMesh);
 
     const filename = `${shipStore.shipSpec.ship.meta.name.replace(/\s+/g, "_")}.glb`;
     await exportAsGLB(scene, filename);
+    alert(`✓ Exported "${filename}"`);
   } catch (error) {
     console.error("GLB export failed:", error);
     alert("Failed to export GLB: " + String(error));
