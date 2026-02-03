@@ -6,6 +6,7 @@
 import * as THREE from "three";
 import { HullVolume } from "./hull";
 import { AABB, Vector3, Vector2 } from "@core/index";
+import mfc from "marching-cubes-faster";
 
 /**
  * Parameters for mesh baking
@@ -25,8 +26,7 @@ export interface BakedMesh {
 }
 
 /**
- * Bake hull geometry using marching cubes style voxel sampling
- * This is a simple implementation; can be optimized later with actual marching cubes library
+ * Bake hull geometry using marching cubes algorithm
  */
 export function bakeHullMesh(params: MeshBakingParams): BakedMesh {
   const { hullVolume, resolution = 1.0, maxResolution = 100 } = params;
@@ -53,49 +53,102 @@ export function bakeHullMesh(params: MeshBakingParams): BakedMesh {
   const actualResY = (bounds.max.y - bounds.min.y) / cappedHeight;
   const actualResZ = (bounds.max.z - bounds.min.z) / cappedDepth;
 
-  // Create voxel grid and sample SDF
-  const voxels = new Uint8Array(cappedWidth * cappedHeight * cappedDepth);
+  // Build a list of bricks for voxels inside the hull
+  // marching-cubes-faster uses CSG primitives, so we'll add bricks for voxels inside
+  const dfObjList: any[] = [];
   let filledVoxels = 0;
 
-  for (let x = 0; x < cappedWidth; x++) {
-    for (let y = 0; y < cappedHeight; y++) {
-      for (let z = 0; z < cappedDepth; z++) {
+  for (let x = 0; x <= cappedWidth; x++) {
+    for (let y = 0; y <= cappedHeight; y++) {
+      for (let z = 0; z <= cappedDepth; z++) {
         const worldX = bounds.min.x + x * actualResX;
         const worldY = bounds.min.y + y * actualResY;
         const worldZ = bounds.min.z + z * actualResZ;
 
         const point: Vector3 = { x: worldX, y: worldY, z: worldZ };
-        const inside = hullVolume.contains(point) ? 1 : 0;
+        const distance = hullVolume.distance(point);
 
-        const idx = x + y * cappedWidth + z * cappedWidth * cappedHeight;
-        voxels[idx] = inside;
-        if (inside) filledVoxels++;
+        // Add brick for voxels inside the hull
+        if (distance <= 0) {
+          filledVoxels++;
+          const halfResX = actualResX / 2;
+          const halfResY = actualResY / 2;
+          const halfResZ = actualResZ / 2;
+          
+          // Add a brick (AABB) for this voxel with small padding for smoothing
+          const padding = 0.5;
+          const color = { r: 0.5, g: 0.5, b: 0.5, a: 1.0 };
+          
+          mfc.dfBuilder.addBrick(
+            dfObjList,
+            [
+              [worldX - halfResX, worldY - halfResY, worldZ - halfResZ],
+              [worldX + halfResX, worldY + halfResY, worldZ + halfResZ]
+            ],
+            padding,
+            false,
+            color
+          );
+        }
       }
     }
   }
 
-  console.log(`Filled voxels: ${filledVoxels}/${voxels.length}`);
+  console.log(`Filled voxels: ${filledVoxels}/${cappedWidth * cappedHeight * cappedDepth}`);
 
-  // Convert voxels to mesh using simple surface extraction
-  const { positions, indices } = extractSurface(
-    voxels,
-    cappedWidth,
-    cappedHeight,
-    cappedDepth,
-    actualResX,
-    actualResY,
-    actualResZ,
-    bounds.min
-  );
+  // Build distance field and R-tree from the brick list
+  const dfBuilderResult = mfc.dfBuilder.buildDfFromRTreeObjs(dfObjList);
 
-  console.log(`Generated positions: ${positions.length / 3}, indices: ${indices.length}`);
+  // Run marching cubes with 5 iterations for detail
+  const iters = 5;
+  const renderBlock = [
+    [bounds.min.x, bounds.min.y, bounds.min.z],
+    [bounds.max.x, bounds.max.y, bounds.max.z]
+  ] as [[number, number, number], [number, number, number]];
+  
+  const result = mfc.meshBuilder.buildForList(dfObjList, iters, renderBlock, dfBuilderResult);
+  
+  console.log(`Generated mesh with ${result.positions.length / 3} vertices and ${result.cells.length} cells`);
+  
+  // Flatten positions if they're not already flat
+  // marching-cubes-faster returns positions as array of [x, y, z] triplets
+  let flatPositions: number[];
+  if (result.positions.length > 0 && Array.isArray(result.positions[0])) {
+    flatPositions = (result.positions as any[]).flat();
+  } else {
+    flatPositions = result.positions;
+  }
 
   // Create Three.js geometry
   const geometry = new THREE.BufferGeometry();
-  geometry.setAttribute("position", new THREE.BufferAttribute(new Float32Array(positions), 3));
-  geometry.setIndex(new THREE.BufferAttribute(new Uint32Array(indices), 1));
   
-  // Compute normals for proper lighting and smoothing
+  // Positions are in format [x, y, z, x, y, z, ...]
+  geometry.setAttribute("position", new THREE.BufferAttribute(new Float32Array(flatPositions), 3));
+  
+  // Build index from cells (which represent surface voxel faces)
+  // Each cell provides connectivity information
+  const indices: number[] = [];
+  if (result.cells && result.cells.length > 0) {
+    for (const cell of result.cells) {
+      if (Array.isArray(cell)) {
+        // Cell is an array of vertex indices forming triangles
+        for (const idx of cell) {
+          indices.push(idx);
+        }
+      }
+    }
+  }
+  
+  if (indices.length === 0) {
+    // Fallback: create simple sequential index
+    for (let i = 0; i < result.positions.length / 3; i++) {
+      indices.push(i);
+    }
+  }
+  
+  geometry.setIndex(new THREE.BufferAttribute(new Uint32Array(indices), 1));
+
+  // Compute normals for proper lighting
   geometry.computeVertexNormals();
   geometry.normalizeNormals();
 
@@ -103,131 +156,6 @@ export function bakeHullMesh(params: MeshBakingParams): BakedMesh {
     geometry,
     boundingBox: bounds,
   };
-}
-
-/**
- * Extract surface triangles from voxel grid
- * Uses surface extraction: check each voxel's 6 faces for inside/outside transitions
- */
-function extractSurface(
-  voxels: Uint8Array,
-  width: number,
-  height: number,
-  depth: number,
-  resX: number,
-  resY: number,
-  resZ: number,
-  origin: Vector3
-): { positions: number[]; indices: number[] } {
-  const positions: number[] = [];
-  const indices: number[] = [];
-  const vertexMap = new Map<string, number>();
-
-  /**
-   * Helper: get voxel at grid coordinates
-   */
-  const getVoxel = (x: number, y: number, z: number): number => {
-    if (x < 0 || x >= width || y < 0 || y >= height || z < 0 || z >= depth) {
-      return 0; // Outside boundary
-    }
-    return voxels[x + y * width + z * width * height];
-  };
-
-  /**
-   * Helper: add vertex
-   */
-  const getOrAddVertex = (x: number, y: number, z: number): number => {
-    const key = `${x},${y},${z}`;
-
-    if (!vertexMap.has(key)) {
-      const idx = positions.length / 3;
-      positions.push(origin.x + x * resX, origin.y + y * resY, origin.z + z * resZ);
-      vertexMap.set(key, idx);
-    }
-
-    return vertexMap.get(key)!;
-  };
-
-  /**
-   * Add a quad face as two triangles
-   */
-  const addQuad = (corners: [number, number, number][]): void => {
-    const [p0, p1, p2, p3] = corners.map(([x, y, z]) => getOrAddVertex(x, y, z));
-    // Ensure consistent winding order (counterclockwise when viewed from outside)
-    indices.push(p0, p2, p1, p0, p3, p2);
-  };
-
-  // Process each voxel and create surface faces
-  for (let x = 0; x < width; x++) {
-    for (let y = 0; y < height; y++) {
-      for (let z = 0; z < depth; z++) {
-        const current = getVoxel(x, y, z);
-        if (current === 0) continue;
-
-        // Right face (x+1) - normal points +X
-        if (getVoxel(x + 1, y, z) === 0) {
-          addQuad([
-            [x + 1, y, z + 1],
-            [x + 1, y + 1, z + 1],
-            [x + 1, y + 1, z],
-            [x + 1, y, z],
-          ]);
-        }
-
-        // Left face (x-1) - normal points -X
-        if (getVoxel(x - 1, y, z) === 0) {
-          addQuad([
-            [x, y, z],
-            [x, y + 1, z],
-            [x, y + 1, z + 1],
-            [x, y, z + 1],
-          ]);
-        }
-
-        // Top face (y+1) - normal points +Y
-        if (getVoxel(x, y + 1, z) === 0) {
-          addQuad([
-            [x, y + 1, z + 1],
-            [x + 1, y + 1, z + 1],
-            [x + 1, y + 1, z],
-            [x, y + 1, z],
-          ]);
-        }
-
-        // Bottom face (y-1) - normal points -Y
-        if (getVoxel(x, y - 1, z) === 0) {
-          addQuad([
-            [x, y, z],
-            [x + 1, y, z],
-            [x + 1, y, z + 1],
-            [x, y, z + 1],
-          ]);
-        }
-
-        // Front face (z+1) - normal points +Z
-        if (getVoxel(x, y, z + 1) === 0) {
-          addQuad([
-            [x + 1, y, z + 1],
-            [x + 1, y + 1, z + 1],
-            [x, y + 1, z + 1],
-            [x, y, z + 1],
-          ]);
-        }
-
-        // Back face (z-1) - normal points -Z
-        if (getVoxel(x, y, z - 1) === 0) {
-          addQuad([
-            [x, y, z],
-            [x, y + 1, z],
-            [x + 1, y + 1, z],
-            [x + 1, y, z],
-          ]);
-        }
-      }
-    }
-  }
-
-  return { positions, indices };
 }
 
 /**
