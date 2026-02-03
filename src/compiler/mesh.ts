@@ -32,16 +32,21 @@ export function bakeHullMesh(params: MeshBakingParams): BakedMesh {
   const { hullVolume, resolution = 1.0, maxResolution = 100 } = params;
 
   const bounds = hullVolume.bounds();
+  console.log("Hull bounds:", bounds);
 
   // Calculate grid dimensions
   const gridWidth = Math.ceil((bounds.max.x - bounds.min.x) / resolution);
   const gridHeight = Math.ceil((bounds.max.y - bounds.min.y) / resolution);
   const gridDepth = Math.ceil((bounds.max.z - bounds.min.z) / resolution);
 
+  console.log(`Grid dimensions before cap: ${gridWidth}x${gridHeight}x${gridDepth}`);
+
   // Cap to prevent memory issues
   const cappedWidth = Math.min(gridWidth, maxResolution);
   const cappedHeight = Math.min(gridHeight, maxResolution);
   const cappedDepth = Math.min(gridDepth, maxResolution);
+
+  console.log(`Grid dimensions after cap: ${cappedWidth}x${cappedHeight}x${cappedDepth}`);
 
   // Adjust resolution to fit within caps
   const actualResX = (bounds.max.x - bounds.min.x) / cappedWidth;
@@ -50,6 +55,7 @@ export function bakeHullMesh(params: MeshBakingParams): BakedMesh {
 
   // Create voxel grid and sample SDF
   const voxels = new Uint8Array(cappedWidth * cappedHeight * cappedDepth);
+  let filledVoxels = 0;
 
   for (let x = 0; x < cappedWidth; x++) {
     for (let y = 0; y < cappedHeight; y++) {
@@ -63,9 +69,12 @@ export function bakeHullMesh(params: MeshBakingParams): BakedMesh {
 
         const idx = x + y * cappedWidth + z * cappedWidth * cappedHeight;
         voxels[idx] = inside;
+        if (inside) filledVoxels++;
       }
     }
   }
+
+  console.log(`Filled voxels: ${filledVoxels}/${voxels.length}`);
 
   // Convert voxels to mesh using simple surface extraction
   const { positions, indices } = extractSurface(
@@ -78,6 +87,8 @@ export function bakeHullMesh(params: MeshBakingParams): BakedMesh {
     actualResZ,
     bounds.min
   );
+
+  console.log(`Generated positions: ${positions.length / 3}, indices: ${indices.length}`);
 
   // Create Three.js geometry
   const geometry = new THREE.BufferGeometry();

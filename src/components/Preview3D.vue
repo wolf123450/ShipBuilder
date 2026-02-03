@@ -61,6 +61,7 @@ import { ref, onMounted, onUnmounted, watch } from "vue";
 import { useShipStore } from "@stores/shipStore";
 import * as THREE from "three";
 import { bakeHullMesh, createPolygonMesh, createRoomMesh } from "@compiler/mesh";
+import { createHullVolume } from "@compiler/hull";
 
 const shipStore = useShipStore();
 const canvasContainer = ref<HTMLDivElement | null>(null);
@@ -198,11 +199,14 @@ function updateMesh() {
   // Bake hull mesh
   if (showHull.value) {
     try {
+      console.log("Starting hull mesh generation...");
       const bakedHull = bakeHullMesh({
         hullVolume: createHullVolumeFromSpec(shipStore.shipSpec),
         resolution: meshResolution.value,
         maxResolution: 60,
       });
+
+      console.log("Hull mesh generated, geometry has ", bakedHull.geometry.getAttribute("position")?.count, " vertices");
 
       const material = new THREE.MeshPhongMaterial({
         color: 0x3b82f6,
@@ -215,6 +219,7 @@ function updateMesh() {
       scene.add(hullMesh);
 
       meshVertexCount.value = (bakedHull.geometry.getAttribute("position").array as Float32Array).length / 3;
+      console.log("Hull mesh added to scene, vertex count:", meshVertexCount.value);
     } catch (error) {
       console.error("Failed to bake hull mesh:", error);
     }
@@ -279,7 +284,6 @@ function updateMesh() {
  * Helper: create hull volume from spec
  */
 function createHullVolumeFromSpec(spec: any) {
-  const { createHullVolume } = require("@compiler/hull");
   return createHullVolume(spec.ship.hull);
 }
 
