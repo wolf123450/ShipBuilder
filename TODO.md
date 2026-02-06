@@ -235,16 +235,29 @@ Ship Design Toolkit MVP aims to deliver a production-ready spaceship design appl
 - **Status**: Complete (22/22 tests still passing)
 
 
-### Priority 3: Component Integration Tests 🧪
-- [ ] Test hull editor (change parameters, presets)
-- [ ] Test deck editor (add/edit decks)
-- [ ] Test room placement (add/delete/drag)
-- [ ] Test export/import roundtrip
-- [ ] Test keyboard shortcuts
-- **Implementation**: Vitest + Vue Test Utils
-- **File**: `src/components/**/*.test.ts` (new)
-- **Estimated Time**: 2-3 hours
-- **Tests**: Full component interaction coverage
+### Priority 3: Component Integration Tests 🧪 ✅ COMPLETE
+- [x] Test hull editor (change parameters, presets)
+- [x] Test deck editor (add/edit decks)
+- [x] Test room placement (add/delete/drag)
+- [x] Test export/import roundtrip
+- [x] Test keyboard shortcuts (indirectly via component interaction)
+- **Implementation**: Vitest + @vue/test-utils
+- **Files created**:
+  - `src/components/editors/HullEditor.test.ts` — 16 tests
+  - `src/components/editors/DeckEditor.test.ts` — 14 tests
+  - `src/components/editors/ExportEditor.test.ts` — 18 tests
+  - `src/components/editors/DeckPlacementEditor.test.ts` — 24 tests
+- **Test Coverage**: 72 new component integration tests
+  - Parameter input and updates
+  - Preset application
+  - Store synchronization
+  - Confirmation dialogs
+  - Error handling
+  - User interactions
+  - Data format validation
+- **Total Tests**: 94 passing (22 compiler + 72 component)
+- **Time spent**: ~2 hours
+- **Status**: Complete (94/94 tests passing)
 
 ### Priority 4: Tooltips & UX Polish ✨
 - [ ] Add tooltips to all hull parameters
