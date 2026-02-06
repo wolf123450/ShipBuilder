@@ -1212,6 +1212,19 @@ onMounted(() => {
     }
   });
 });
+
+/**
+ * Expose deleteSelectedRoom method for keyboard shortcuts
+ */
+function deleteSelectedRoom() {
+  if (selectedRoomId.value) {
+    deleteRoom(selectedRoomId.value);
+  }
+}
+
+defineExpose({
+  deleteSelectedRoom,
+});
 </script>
 
 <style scoped>

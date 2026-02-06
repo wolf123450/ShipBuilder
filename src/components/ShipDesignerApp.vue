@@ -72,7 +72,7 @@ const saveStatus = ref<"idle" | "saving" | "saved">("idle");
 function saveProject() {
   try {
     saveStatus.value = "saving";
-    saveShipToLibrary(shipStore.ship);
+    saveShipToLibrary(shipStore.shipSpec);
     shipStore.markClean();
     
     // Show brief "Saved" feedback

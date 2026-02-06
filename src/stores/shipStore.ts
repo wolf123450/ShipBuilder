@@ -96,6 +96,11 @@ export const useShipStore = defineStore("ship", () => {
     return JSON.stringify(shipSpec.value) !== lastSavedState.value;
   });
 
+  /**
+   * Computed property for easier access to ship object
+   */
+  const ship = computed(() => shipSpec.value.ship);
+
   // ACTIONS
   /**
    * Recompile ship specification into derived data
@@ -227,6 +232,7 @@ export const useShipStore = defineStore("ship", () => {
     isCompiling,
     compilationError,
     isDirty,
+    ship,
     selectedItemType,
     selectedItemId,
 

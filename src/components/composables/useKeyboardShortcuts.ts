@@ -46,7 +46,7 @@ export function useKeyboardShortcuts(options: KeyboardShortcutsOptions = {}) {
         } else {
           // Default: delete the selected room
           const selectedRoom = shipStore.ship.rooms.find(
-            (r) => r.id === shipStore.selectedItemId
+            (r: any) => r.id === shipStore.selectedItemId
           );
           if (selectedRoom) {
             shipStore.deleteRoom(selectedRoom.id);

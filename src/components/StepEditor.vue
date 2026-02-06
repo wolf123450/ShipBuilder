@@ -26,7 +26,7 @@
         <DeckEditor />
       </div>
       <div v-else-if="activeTab === 2" class="p-4">
-        <DeckPlacementEditor />
+        <DeckPlacementEditor ref="deckPlacementEditorRef" />
       </div>
       <div v-else-if="activeTab === 3" class="p-4">
         <ExportEditor />
@@ -46,6 +46,7 @@ import ExportEditor from "./editors/ExportEditor.vue";
 
 const shipStore = useShipStore();
 const activeTab = ref(0);
+const deckPlacementEditorRef = ref<any>(null);
 
 const tabs = [
   { label: "1. Hull" },
@@ -69,7 +70,11 @@ const cycleTab = (direction: "next" | "prev") => {
  * Handle room deletion via Delete key
  */
 const deleteSelectedRoom = () => {
-  if (shipStore.selectedItemType === "room" && shipStore.selectedItemId) {
+  // If on Rooms tab, delegate to DeckPlacementEditor to show confirmation
+  if (activeTab.value === 2 && deckPlacementEditorRef.value?.deleteSelectedRoom) {
+    deckPlacementEditorRef.value.deleteSelectedRoom();
+  } else if (shipStore.selectedItemType === "room" && shipStore.selectedItemId) {
+    // For other tabs or direct deletion
     shipStore.deleteRoom(shipStore.selectedItemId);
     shipStore.clearSelection();
   }
