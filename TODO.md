@@ -4,6 +4,21 @@
 
 Ship Design Toolkit MVP aims to deliver a production-ready spaceship design application with a visual 3D feedback loop. The project is structured in phases, each building on previous work.
 
+---
+
+## 📊 Implementation Status (as of Feb 6, 2026)
+
+| Phase | Focus | Status | Tests | Notes |
+|-------|-------|--------|-------|-------|
+| **Phase 1** | Core MVP (mesh, preview, workflow) | ✅ COMPLETE | 22/22 passing | Visual feedback loop implemented |
+| **Phase 2** | 2D Room Placement (editor & collision) | ✅ COMPLETE | 22/22 passing | Full drag-drop, SAT collision detection, CRUD |
+| **Phase 3** | Export & Import (formats & library) | ✅ COMPLETE | 22/22 passing | JSON/YAML/GLB export + localStorage library |
+| **Phase 4** | Polish & Optimization | ⏳ PENDING | — | Deferred (not blocking MVP release) |
+
+**MVP Readiness**: ~95% complete. Core features fully implemented. Ready for release with Phase 4 items moved to future sprints.
+
+---
+
 ## Phase 1: Core MVP (Visual Feedback Loop) - ✅ COMPLETE
 
 ### 1.1: Mesh Baker Module ✅ COMPLETE

@@ -15,7 +15,10 @@ Hull → Decks → Rooms → Export
 - **Ship-aware abstractions** — Think in terms of hulls, decks, rooms, and windows, not vertices
 - **Progressive constraints** — Each design step reduces degrees of freedom, preventing invalid states
 - **Deterministic compilation** — Same input always produces identical geometry
-- **Multiple export formats** — Export to GLB/GLTF for use in game engines
+- **Interactive 3D preview** — Real-time visualization with camera controls and multiple preset views
+- **2D room placement editor** — Visual deck layout with drag-and-drop, collision detection, and room management
+- **Multiple export formats** — Export to JSON, YAML, or GLB/GLTF for use in game engines
+- **Local project library** — Save, load, and manage ship designs in your browser
 - **Structured data** — All ship designs are YAML/JSON-serializable for version control and procedural generation
 
 ## Project Structure
@@ -25,11 +28,18 @@ ShipBuilder/
 ├── src/
 │   ├── components/          # Vue components
 │   │   ├── ShipDesignerApp.vue    # Main app container
-│   │   ├── ShipEditor.vue          # Sidebar editor
-│   │   └── Preview3D.vue           # Three.js 3D viewport
+│   │   ├── StepEditor.vue         # Tab-based editor (4 steps)
+│   │   ├── Preview3D.vue          # Three.js 3D viewport with camera controls
+│   │   ├── editors/               # Individual step editors
+│   │   │   ├── HullEditor.vue
+│   │   │   ├── DeckEditor.vue
+│   │   │   ├── DeckPlacementEditor.vue
+│   │   │   └── ExportEditor.vue
+│   │   └── composables/           # Reusable Vue composables
 │   ├── compiler/            # Core compilation modules
 │   │   ├── hull.ts          # Hull volume representation
 │   │   ├── decks.ts         # Deck footprint generation
+│   │   ├── mesh.ts          # Mesh baking and generation
 │   │   └── index.ts         # Main compilation pipeline
 │   ├── stores/              # Pinia state management
 │   │   └── shipStore.ts     # Ship spec and derived state
@@ -127,10 +137,10 @@ The canonical data representation, serializable to JSON/YAML:
 
 Stateless modules that transform ShipSpec into queryable geometry:
 
-- **HullVolume** — Implicit SDF-based representation with queries
+- **HullVolume** — Implicit SDF-based representation with spatial queries
 - **DeckFootprints** — 2D polygons per deck for room placement
-- **RoomValidation** — Overlap detection and boundary checks
-- **MeshBaking** (future) — Triangle mesh generation
+- **RoomValidation** — Overlap detection (SAT algorithm) and boundary checks
+- **MeshBaking** — Voxel-based hull mesh generation with configurable resolution
 
 #### `ShipStore` (Pinia)
 
@@ -143,11 +153,15 @@ Reactive state management:
 
 #### `Preview3D` (Three.js)
 
-Interactive 3D viewport:
+Advanced interactive 3D viewport:
 
-- Renders hull, decks, rooms
+- Renders hull meshes, deck footprints, and rooms with type-based colors
 - Real-time updates as you edit
-- Camera controls and visualization modes
+- Orbit camera with preset views (top, bottom, front, back, left, right)
+- Object selection and focus controls
+- Configurable mesh resolution slider
+- Visibility toggles for hull, decks, and rooms
+- Stats overlay (vertex/face/room counts)
 
 ## Development Workflow
 
@@ -209,22 +223,32 @@ npm run test:coverage
 
 ## MVP Scope
 
-This initial release focuses on:
+This initial release includes:
 
-- ✅ Basic hull design (lofted spine)
-- ✅ Deck layout
-- ✅ Room placement
-- ✅ Window rule generation
-- ✅ Export to JSON/YAML
-- 🚧 3D preview (basic visualization)
-- ⏳ GLB/GLTF mesh export
+### ✅ Core Features (Complete)
+
+- ✅ Hull design with lofted spine profiles
+- ✅ Multi-deck layout with automatic footprint generation
+- ✅ Interactive 2D room placement with drag-and-drop
+- ✅ Collision detection (SAT algorithm) and validation
+- ✅ Real-time 3D preview with advanced camera controls
+- ✅ Export to JSON, YAML, and GLB/GLTF formats
+- ✅ Browser-based project library with save/load/delete
+- ✅ File import with validation and error handling
+
+### ⏳ Deferred to Phase 4 (Polish)
+
+- ⏳ Window rule generation and placement
 - ⏳ Undo/redo system
-- ⏳ Procedural generation API
+- ⏳ Keyboard shortcuts (Ctrl+S, Delete, etc.)
+- ⏳ Tooltips and enhanced UX
+- ⏳ Component integration tests
 
 ## Future Extensions
 
-Reserved for future versions:
+Reserved for Phase 4+ and beyond:
 
+- **Window System** — Rule-based window placement and cutouts
 - **Advanced Hulls** — Saucers, nacelles, CSG booleans
 - **Modular Design** — Engines, weapons, attachments
 - **Procedural Generation** — Batch ship creation via Node.js CLI

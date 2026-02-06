@@ -427,6 +427,63 @@ ShipDesignerApp (Vue App)
 
 ---
 
+## 2.4.1 Implementation Status (as of Feb 2026)
+
+This section documents the current state of implementation for reference during development.
+
+### Architecture Alignment
+
+| Goal | Design Specification | Implementation | Status |
+|------|----------------------|-----------------|--------|
+| **G1** | Ship-aware abstractions (hull, deck, room not vertices) | Full type system + UI editors | ✅ Complete |
+| **G2** | Progressive constraint (Hull → Decks → Rooms → Export) | Tab-based workflow implemented | ✅ Complete |
+| **G3** | Visual-first UI + data-first YAML/JSON backend | Vue components + serializable specs | ✅ Complete |
+| **G4** | Web-native (Vue.js standalone app) | Vue 3 + Pinia + Vite | ✅ Complete |
+| **G5** | Scale across ship classes (fighters to capitals) | Type system supports all scales | ✅ Complete |
+
+### Compilation Pipeline Status
+
+| Stage | Purpose | Implementation | Status | Notes |
+|-------|---------|-----------------|--------|-------|
+| **1** | Hull Resolution | `createHullVolume()` in `hull.ts` | ✅ Complete | Queryable SDF-based representation |
+| **2** | Deck Resolution | `compileDeckFootprints()` in `decks.ts` | ✅ Complete | Generated 2D polygons per deck |
+| **3** | Room Resolution | `validateRooms()` in `index.ts` | ✅ Complete | Overlap detection with SAT algorithm |
+| **4** | Surface Features | Window placement rules | ⏳ Deferred | Planned for Phase 4+ |
+| **5** | Mesh Baking | `bakeHullMesh()` in `mesh.ts` | ✅ Complete | Voxel-based mesh generation |
+
+### Feature Implementation
+
+| Feature | Design Req. | Implementation | Status |
+|---------|------------|-----------------|--------|
+| **Hull Editing** | Lofted spine with parameters | `HullEditor.vue` | ✅ Complete |
+| **Deck Editing** | Stack height & vertical range | `DeckEditor.vue` | ✅ Complete |
+| **Room Placement** | 2D editor with collision detection | `DeckPlacementEditor.vue` (1,187 lines) | ✅ Complete |
+| **3D Preview** | Real-time visualization | `Preview3D.vue` with camera controls | ✅ **Exceeds Spec** |
+| **Export Formats** | JSON, YAML, GLB/GLTF | `src/utils/export.ts` | ✅ Complete |
+| **File Import** | Load & validate specs | `importFromFile()` with error handling | ✅ Complete |
+| **Project Library** | Browser-based persistence | localStorage CRUD in `ExportEditor.vue` | ✅ Complete |
+
+### Test Coverage
+
+- **Compiler Tests**: 22/22 passing
+- **Hull Module**: 6 tests (queries, slicing, bounds)
+- **Deck Module**: 6 tests (footprints, validation)
+- **Mesh Module**: 5 tests (resolution, geometry)
+- **Integration Tests**: 5 tests (end-to-end compilation)
+- **Vue Components**: 0 formal tests (deferred to Phase 4)
+
+### Known Deferred Items
+
+| Item | Reason | Planned Phase |
+|------|--------|----------------|
+| Window placement system | Complex rule engine, not blocking MVP | Phase 4+ |
+| Undo/redo system | Requires state management refactor | Phase 4+ |
+| Keyboard shortcuts | UX polish, deferred | Phase 4 |
+| Component integration tests | Test infrastructure exists, low priority | Phase 4 |
+| Performance optimization | Current perf acceptable for MVP | Phase 4 |
+
+---
+
 ## 2.5 Compilation Stages (Detailed)
 
 ### Stage 1 — Hull Resolution
