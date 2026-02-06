@@ -116,6 +116,7 @@ export function useMeshManagement(
         console.log('Starting hull mesh generation...');
         const bakedHull = bakeHullMesh({
           hullVolume: createHullVolumeFromSpec(shipStore.shipSpec),
+          hullSpec: shipStore.shipSpec.ship.hull, // Pass hull spec for caching
           resolution: meshResolution.value,
           maxResolution: 60,
         });
