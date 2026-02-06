@@ -84,6 +84,8 @@ export const useShipStore = defineStore("ship", () => {
   const derivedData = ref<DerivedShipData | null>(null);
   const isCompiling = ref(false);
   const compilationError = ref<string | null>(null);
+  const selectedItemType = ref<'room' | 'deck' | 'hull' | null>(null);
+  const selectedItemId = ref<string | null>(null);
 
   // COMPUTED
   const isDirty = computed(() => {
@@ -188,6 +190,22 @@ export const useShipStore = defineStore("ship", () => {
     recompileShip();
   }
 
+  /**
+   * Select an item (room, deck, or hull)
+   */
+  function selectItem(itemType: 'room' | 'deck' | 'hull' | null, itemId: string | null = null) {
+    selectedItemType.value = itemType;
+    selectedItemId.value = itemId;
+  }
+
+  /**
+   * Clear selection
+   */
+  function clearSelection() {
+    selectedItemType.value = null;
+    selectedItemId.value = null;
+  }
+
   // Perform initial compilation
   recompileShip();
 
@@ -198,6 +216,8 @@ export const useShipStore = defineStore("ship", () => {
     isCompiling,
     compilationError,
     isDirty,
+    selectedItemType,
+    selectedItemId,
 
     // Actions
     recompileShip,
@@ -210,5 +230,7 @@ export const useShipStore = defineStore("ship", () => {
     updateWindows,
     resetShip,
     loadShip,
+    selectItem,
+    clearSelection,
   };
 });

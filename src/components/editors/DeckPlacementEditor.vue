@@ -342,7 +342,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch } from "vue";
 import { useShipStore } from "@/stores/shipStore";
-import { RoomType } from "@core/index";
+import { RoomType, RoomShapeType } from "@core/index";
 
 // ============================================================================
 // STATE
@@ -964,6 +964,12 @@ function toggleGrid() {
  */
 function selectRoom(roomId: string) {
   selectedRoomId.value = selectedRoomId.value === roomId ? null : roomId;
+  // Sync with store
+  if (selectedRoomId.value) {
+    shipStore.selectItem('room', selectedRoomId.value);
+  } else {
+    shipStore.clearSelection();
+  }
   drawCanvas();
 }
 
@@ -974,6 +980,7 @@ function deleteRoom(roomId: string) {
   shipStore.deleteRoom(roomId);
   if (selectedRoomId.value === roomId) {
     selectedRoomId.value = null;
+    shipStore.clearSelection();
   }
 }
 
@@ -1018,7 +1025,7 @@ function saveEditRoom() {
     id: editRoom.value.id,
     type: editRoom.value.type as any,
     shape: {
-      type: "rect" as const,
+      type: RoomShapeType.Rect,
       size: [editRoom.value.width, editRoom.value.depth],
     },
     position: { x: editRoom.value.posX, z: editRoom.value.posZ },
@@ -1070,7 +1077,7 @@ function addRoomToCurrentDeck() {
     id: newRoom.value.id,
     type: newRoom.value.type as any,
     deck: selectedDeckIndex.value,
-    shape: { type: "rect" as const, size: [newRoom.value.width, newRoom.value.depth] },
+    shape: { type: RoomShapeType.Rect, size: [newRoom.value.width, newRoom.value.depth] as [number, number] },
     position: { x: newRoom.value.posX, z: newRoom.value.posZ },
     rotationDeg: newRoom.value.rotation,
     tags: [],
@@ -1142,6 +1149,23 @@ onMounted(() => {
   };
 
   animationId = requestAnimationFrame(renderFrame);
+
+  /**
+   * Watch for store selection changes to sync with local state
+   */
+  watch(
+    () => [shipStore.selectedItemType, shipStore.selectedItemId],
+    ([type, id]) => {
+      if (type === 'room') {
+        selectedRoomId.value = id;
+        drawCanvas();
+      } else if (type !== 'room' && selectedRoomId.value) {
+        // Clear local selection if another type is selected
+        selectedRoomId.value = null;
+        drawCanvas();
+      }
+    }
+  );
 
   onUnmounted(() => {
     if (animationId) {

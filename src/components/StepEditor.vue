@@ -36,12 +36,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, watch } from "vue";
+import { useShipStore } from "@stores/shipStore";
 import HullEditor from "./editors/HullEditor.vue";
 import DeckEditor from "./editors/DeckEditor.vue";
 import DeckPlacementEditor from "./editors/DeckPlacementEditor.vue";
 import ExportEditor from "./editors/ExportEditor.vue";
 
+const shipStore = useShipStore();
 const activeTab = ref(0);
 
 const tabs = [
@@ -50,6 +52,22 @@ const tabs = [
   { label: "3. Rooms" },
   { label: "4. Export" },
 ];
+
+/**
+ * Watch for selection changes to auto-open relevant tabs
+ */
+watch(
+  () => [shipStore.selectedItemType, shipStore.selectedItemId],
+  ([type, id]) => {
+    if (type === 'room') {
+      activeTab.value = 2; // Open Rooms tab
+    } else if (type === 'deck') {
+      activeTab.value = 1; // Open Decks tab
+    } else if (type === 'hull') {
+      activeTab.value = 0; // Open Hull tab
+    }
+  }
+);
 </script>
 
 <style scoped></style>
