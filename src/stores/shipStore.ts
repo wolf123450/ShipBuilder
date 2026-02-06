@@ -87,11 +87,13 @@ export const useShipStore = defineStore("ship", () => {
   const selectedItemType = ref<'room' | 'deck' | 'hull' | null>(null);
   const selectedItemId = ref<string | null>(null);
 
+  // Store the last saved state to track dirty flag
+  const lastSavedState = ref<string>(JSON.stringify(shipSpec.value));
+
   // COMPUTED
   const isDirty = computed(() => {
-    // Check if any edits have been made since last save
-    // TODO: Implement proper dirty tracking
-    return true;
+    // Compare current state to last saved state
+    return JSON.stringify(shipSpec.value) !== lastSavedState.value;
   });
 
   // ACTIONS
@@ -179,6 +181,7 @@ export const useShipStore = defineStore("ship", () => {
    */
   function resetShip() {
     shipSpec.value = createDefaultShip();
+    lastSavedState.value = JSON.stringify(shipSpec.value);
     recompileShip();
   }
 
@@ -187,6 +190,7 @@ export const useShipStore = defineStore("ship", () => {
    */
   function loadShip(spec: ShipSpec) {
     shipSpec.value = spec;
+    lastSavedState.value = JSON.stringify(spec);
     recompileShip();
   }
 
@@ -204,6 +208,13 @@ export const useShipStore = defineStore("ship", () => {
   function clearSelection() {
     selectedItemType.value = null;
     selectedItemId.value = null;
+  }
+
+  /**
+   * Mark the current state as saved (clears dirty flag)
+   */
+  function markClean() {
+    lastSavedState.value = JSON.stringify(shipSpec.value);
   }
 
   // Perform initial compilation
@@ -232,5 +243,6 @@ export const useShipStore = defineStore("ship", () => {
     loadShip,
     selectItem,
     clearSelection,
+    markClean,
   };
 });

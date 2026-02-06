@@ -38,6 +38,7 @@
 <script setup lang="ts">
 import { ref, watch } from "vue";
 import { useShipStore } from "@stores/shipStore";
+import { useKeyboardShortcuts } from "./composables/useKeyboardShortcuts";
 import HullEditor from "./editors/HullEditor.vue";
 import DeckEditor from "./editors/DeckEditor.vue";
 import DeckPlacementEditor from "./editors/DeckPlacementEditor.vue";
@@ -52,6 +53,35 @@ const tabs = [
   { label: "3. Rooms" },
   { label: "4. Export" },
 ];
+
+/**
+ * Handle tab cycling via keyboard (Tab/Shift+Tab)
+ */
+const cycleTab = (direction: "next" | "prev") => {
+  if (direction === "next") {
+    activeTab.value = (activeTab.value + 1) % tabs.length;
+  } else {
+    activeTab.value = (activeTab.value - 1 + tabs.length) % tabs.length;
+  }
+};
+
+/**
+ * Handle room deletion via Delete key
+ */
+const deleteSelectedRoom = () => {
+  if (shipStore.selectedItemType === "room" && shipStore.selectedItemId) {
+    shipStore.deleteRoom(shipStore.selectedItemId);
+    shipStore.clearSelection();
+  }
+};
+
+/**
+ * Register keyboard shortcuts
+ */
+useKeyboardShortcuts({
+  onCycleTab: cycleTab,
+  onDelete: deleteSelectedRoom,
+});
 
 /**
  * Watch for selection changes to auto-open relevant tabs

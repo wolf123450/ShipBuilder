@@ -171,32 +171,74 @@ Ship Design Toolkit MVP aims to deliver a production-ready spaceship design appl
 
 ---
 
-## Phase 4: Polish & Optimization - [PENDING]
+## Phase 4: Polish & Optimization - 🚧 IN PROGRESS
 
-### 4.1: UX Improvements
-- [ ] Add tooltips for all parameters
-- [ ] Improve error messages
-- [ ] Add confirmation dialogs for destructive actions
-- [ ] Keyboard shortcuts (Ctrl+S save, Ctrl+Z undo)
+### Priority 1: Keyboard Shortcuts ⌨️ ✅ COMPLETE
+- [x] **Ctrl+S** — Save current project to localStorage
+- [x] **Delete** — Delete selected room
+- [x] **Escape** — Clear selection
+- [x] **Tab** — Cycle through deck tabs (1-4)
+- [x] **Implementation**: Create `useKeyboardShortcuts.ts` composable
+- [x] **File**: `src/components/composables/useKeyboardShortcuts.ts`
+- [x] **Integration points**: `StepEditor.vue`, `Preview3D.vue`, `ShipDesignerApp.vue`
+- [x] **Store updates**: Proper dirty tracking with `isDirty` and `markClean()`
+- **Time spent**: ~2 hours
+- **Status**: Tested and working (22/22 tests still passing)
 
-### 4.2: Performance
-- [ ] Implement mesh caching
-- [ ] Optimize voxel grid sampling
-- [ ] GPU instancing for room rendering
-- [ ] Profile frame rate on low-end devices
+### Priority 2: Confirmation Dialogs & Error Handling 🛡️
+- [ ] Add delete confirmation for rooms
+- [ ] Add confirmation for "Clear All Rooms" 
+- [ ] Add confirmation for "Delete Project" from library
+- [ ] Improve error messages (validation, import errors)
+- [ ] Create reusable `ConfirmDialog.vue` component
+- **Implementation**: Modal dialogs for destructive actions
+- **Estimated Time**: 1.5 hours
+- **Tests**: None (deferred to Priority 4)
 
-### 4.3: Testing
-- [ ] Component integration tests
-- [ ] E2E browser tests
-- [ ] Performance benchmarks
-- [ ] Cross-browser testing
+### Priority 3: Component Integration Tests 🧪
+- [ ] Test hull editor (change parameters, presets)
+- [ ] Test deck editor (add/edit decks)
+- [ ] Test room placement (add/delete/drag)
+- [ ] Test export/import roundtrip
+- [ ] Test keyboard shortcuts
+- **Implementation**: Vitest + Vue Test Utils
+- **File**: `src/components/**/*.test.ts` (new)
+- **Estimated Time**: 2-3 hours
+- **Tests**: Full component interaction coverage
 
-**Estimated Time**: 1 hour
-**Success Criteria**:
-- Consistent 60 FPS on modern hardware
-- <500ms export operation
-- All tests passing
-- No console warnings
+### Priority 4: Tooltips & UX Polish ✨
+- [ ] Add tooltips to all hull parameters
+- [ ] Add tooltips to deck controls
+- [ ] Add tooltips to room editor
+- [ ] Add tooltips to export buttons
+- [ ] Create reusable `Tooltip.vue` component or use HTML title attributes
+- **Estimated Time**: 1-2 hours
+- **Tests**: None (visual only)
+
+### Priority 5: Performance Optimization 🚀 [LOWER PRIORITY]
+- [ ] Profile mesh generation with DevTools
+- [ ] Implement mesh caching for unchanged specs
+- [ ] Optimize voxel grid sampling (early termination)
+- [ ] Lazy-load Three.js components
+- **Estimated Time**: 2+ hours (depends on findings)
+- **Tests**: Performance benchmarks with Vitest
+
+### Testing (Priority 3) Details
+- **Files to create**:
+  - `src/components/editors/HullEditor.test.ts`
+  - `src/components/editors/DeckEditor.test.ts`
+  - `src/components/editors/DeckPlacementEditor.test.ts`
+  - `src/components/editors/ExportEditor.test.ts`
+- **Coverage goal**: All user interactions tested
+- **Framework**: Vitest + @vue/test-utils
+
+**Phase 4 Success Criteria**:
+- ✅ Keyboard shortcuts working (Ctrl+S, Delete, etc.)
+- ✅ Confirmation dialogs prevent accidental deletions
+- ✅ Error messages are user-friendly
+- ✅ Component tests provide confidence
+- ✅ No console warnings during normal use
+- ✅ Smooth 60 FPS on modern hardware
 
 ---
 
