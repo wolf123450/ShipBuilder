@@ -8,12 +8,14 @@
     </div>
 
     <!-- Main hull parameters -->
-    <div class="bg-ship-dark border border-ship-slate rounded p-4 space-y-4">
+    <div class="bg-ship-dark border border-ship-slate rounded p-4 space-y-4 overflow-visible">
       <h3 class="font-semibold text-lg">Hull Dimensions</h3>
 
-      <div class="grid grid-cols-3 gap-4">
+      <div class="grid grid-cols-3 gap-4 overflow-visible">
         <div>
-          <label class="block text-gray-400 text-sm mb-2">Length (m)</label>
+          <Tooltip text="Front-to-back length of the ship">
+            <label class="block text-gray-400 text-sm mb-2 cursor-help">Length (m)</label>
+          </Tooltip>
           <input
             v-model.number="length"
             type="number"
@@ -22,7 +24,9 @@
           />
         </div>
         <div>
-          <label class="block text-gray-400 text-sm mb-2">Beam/Width (m)</label>
+          <Tooltip text="Port-to-starboard width at the widest point">
+            <label class="block text-gray-400 text-sm mb-2 cursor-help">Beam/Width (m)</label>
+          </Tooltip>
           <input
             v-model.number="maxBeam"
             type="number"
@@ -31,7 +35,9 @@
           />
         </div>
         <div>
-          <label class="block text-gray-400 text-sm mb-2">Height (m)</label>
+          <Tooltip text="Bottom-to-top height at the tallest point">
+            <label class="block text-gray-400 text-sm mb-2 cursor-help">Height (m)</label>
+          </Tooltip>
           <input
             v-model.number="maxHeight"
             type="number"
@@ -43,17 +49,17 @@
     </div>
 
     <!-- Hull spine profile -->
-    <div class="bg-ship-dark border border-ship-slate rounded p-4 space-y-4">
+    <div class="bg-ship-dark border border-ship-slate rounded p-4 space-y-4 overflow-visible">
       <h3 class="font-semibold text-lg">Hull Profile</h3>
       <p class="text-gray-400 text-xs">
         Adjust the radius at different points along the ship's length (0 = nose, 1 = tail).
       </p>
 
-      <div class="space-y-2">
+      <div class="space-y-2 overflow-visible">
         <div
           v-for="(point, idx) in spine.points"
           :key="idx"
-          class="bg-ship-navy rounded p-3 space-y-2"
+          class="bg-ship-navy rounded p-3 space-y-2 overflow-visible"
         >
           <div class="flex items-center justify-between">
             <span class="text-sm font-semibold">Point {{ idx + 1 }}</span>
@@ -66,9 +72,11 @@
             </button>
           </div>
 
-          <div class="grid grid-cols-2 gap-2">
-            <div>
-              <label class="text-xs text-gray-400 block mb-1">Position (Z)</label>
+          <div class="grid grid-cols-2 gap-2 overflow-visible">
+            <div class="overflow-visible">
+              <Tooltip text="Position along ship length (0=nose, 1=tail)">
+                <label class="text-xs text-gray-400 block mb-1 cursor-help">Position (Z)</label>
+              </Tooltip>
               <input
                 v-model.number="point.z"
                 type="number"
@@ -80,7 +88,9 @@
               />
             </div>
             <div>
-              <label class="text-xs text-gray-400 block mb-1">Radius</label>
+              <Tooltip text="Hull width at this point (0=point, 1=max beam)">
+                <label class="text-xs text-gray-400 block mb-1 cursor-help">Radius</label>
+              </Tooltip>
               <input
                 v-model.number="point.radius"
                 type="number"
@@ -136,6 +146,7 @@
 <script setup lang="ts">
 import { ref, reactive, watch } from "vue";
 import { useShipStore } from "@stores/shipStore";
+import Tooltip from "../Tooltip.vue";
 
 const shipStore = useShipStore();
 

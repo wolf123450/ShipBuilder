@@ -8,9 +8,11 @@
     </div>
 
     <!-- Current project info -->
-    <div class="bg-ship-dark border border-ship-slate rounded p-4 space-y-2">
-      <div class="text-sm">
-        <strong class="block text-white mb-1">Project Name</strong>
+    <div class="bg-ship-dark border border-ship-slate rounded p-4 space-y-2 overflow-visible">
+      <div class="text-sm overflow-visible">
+        <Tooltip text="Give your ship design a memorable name">
+          <strong class="block text-white mb-1 cursor-help">Project Name</strong>
+        </Tooltip>
         <input
           v-model="shipName"
           type="text"
@@ -19,7 +21,9 @@
         />
       </div>
       <div class="text-sm">
-        <strong class="block text-white mb-1">Description</strong>
+        <Tooltip text="Add notes about your design, purpose, or variants">
+          <strong class="block text-white mb-1 cursor-help">Description</strong>
+        </Tooltip>
         <textarea
           v-model="shipDescription"
           @change="updateDescription"
@@ -29,41 +33,47 @@
     </div>
 
     <!-- Export formats -->
-    <div class="bg-ship-dark border border-ship-slate rounded p-4 space-y-4">
+    <div class="bg-ship-dark border border-ship-slate rounded p-4 space-y-4 overflow-visible">
       <h3 class="font-semibold text-lg">Export Formats</h3>
 
-      <div class="space-y-2">
-        <button
-          @click="exportJSON"
-          class="w-full px-4 py-3 bg-ship-navy hover:bg-ship-slate rounded border border-ship-slate text-left"
-        >
-          <strong class="block">📄 JSON Export</strong>
-          <span class="text-xs text-gray-400">Portable, machine-readable format</span>
-        </button>
+      <div class="space-y-2 overflow-visible">
+        <Tooltip text="Export as JSON for import/backup">
+          <button
+            @click="exportJSON"
+            class="w-full px-4 py-3 bg-ship-navy hover:bg-ship-slate rounded border border-ship-slate text-left cursor-help"
+          >
+            <strong class="block">📄 JSON Export</strong>
+            <span class="text-xs text-gray-400">Portable, machine-readable format</span>
+          </button>
+        </Tooltip>
 
-        <button
-          @click="exportYAML"
-          class="w-full px-4 py-3 bg-ship-navy hover:bg-ship-slate rounded border border-ship-slate text-left"
-        >
-          <strong class="block">📝 YAML Export</strong>
-          <span class="text-xs text-gray-400">Human-readable, version control friendly</span>
-        </button>
+        <Tooltip text="Export as YAML for version control">
+          <button
+            @click="exportYAML"
+            class="w-full px-4 py-3 bg-ship-navy hover:bg-ship-slate rounded border border-ship-slate text-left cursor-help"
+          >
+            <strong class="block">📝 YAML Export</strong>
+            <span class="text-xs text-gray-400">Human-readable, version control friendly</span>
+          </button>
+        </Tooltip>
 
-        <button
-          @click="exportGLB"
-          :disabled="!canExportGLB"
-          :class="[
-            'w-full px-4 py-3 rounded border',
-            canExportGLB
-              ? 'bg-ship-navy hover:bg-ship-slate border-ship-slate cursor-pointer'
-              : 'bg-gray-800 border-gray-700 cursor-not-allowed opacity-50',
-          ]"
-        >
-          <strong class="block">🎨 GLB Export</strong>
-          <span class="text-xs text-gray-400">
-            {{ canExportGLB ? "3D model, game engine ready" : "Coming soon" }}
-          </span>
-        </button>
+        <Tooltip text="Export as 3D model for game engines">
+          <button
+            @click="exportGLB"
+            :disabled="!canExportGLB"
+            :class="[
+              'w-full px-4 py-3 rounded border',
+              canExportGLB
+                ? 'bg-ship-navy hover:bg-ship-slate border-ship-slate cursor-help'
+                : 'bg-gray-800 border-gray-700 cursor-not-allowed opacity-50',
+            ]"
+          >
+            <strong class="block">🎨 GLB Export</strong>
+            <span class="text-xs text-gray-400">
+              {{ canExportGLB ? "3D model, game engine ready" : "Coming soon" }}
+            </span>
+          </button>
+        </Tooltip>
       </div>
     </div>
 
@@ -167,6 +177,7 @@ import { exportAsJSON, exportAsYAML, downloadFile, exportAsGLB, triggerFileInput
 import { saveShipToLibrary, loadLibrary, loadShipFromStorage, deleteFromLibrary } from "@utils/storage";
 import * as THREE from "three";
 import ConfirmDialog from "../ConfirmDialog.vue";
+import Tooltip from "../Tooltip.vue";
 
 const shipStore = useShipStore();
 const shipName = ref(shipStore.shipSpec.ship.meta.name);

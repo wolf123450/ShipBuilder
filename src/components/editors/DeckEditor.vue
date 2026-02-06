@@ -8,12 +8,14 @@
     </div>
 
     <!-- Deck parameters -->
-    <div class="bg-ship-dark border border-ship-slate rounded p-4 space-y-4">
+    <div class="bg-ship-dark border border-ship-slate rounded p-4 space-y-4 overflow-visible">
       <h3 class="font-semibold text-lg">Configuration</h3>
 
-      <div class="grid grid-cols-3 gap-4">
+      <div class="grid grid-cols-3 gap-4 overflow-visible">
         <div>
-          <label class="block text-gray-400 text-sm mb-2">Deck Height (m)</label>
+          <Tooltip text="Vertical distance from floor to ceiling on each deck">
+            <label class="block text-gray-400 text-sm mb-2 cursor-help">Deck Height (m)</label>
+          </Tooltip>
           <input
             v-model.number="deckHeight"
             type="number"
@@ -24,7 +26,9 @@
           <div class="text-xs text-gray-500 mt-1">Floor to ceiling</div>
         </div>
         <div>
-          <label class="block text-gray-400 text-sm mb-2">Stack Start (m)</label>
+          <Tooltip text="Bottom-most Y coordinate where decks begin">
+            <label class="block text-gray-400 text-sm mb-2 cursor-help">Stack Start (m)</label>
+          </Tooltip>
           <input
             v-model.number="startY"
             type="number"
@@ -34,7 +38,9 @@
           />
         </div>
         <div>
-          <label class="block text-gray-400 text-sm mb-2">Stack End (m)</label>
+          <Tooltip text="Top-most Y coordinate where decks end">
+            <label class="block text-gray-400 text-sm mb-2 cursor-help">Stack End (m)</label>
+          </Tooltip>
           <input
             v-model.number="endY"
             type="number"
@@ -112,7 +118,7 @@
 <script setup lang="ts">
 import { ref, computed, watch } from "vue";
 import { useShipStore } from "@stores/shipStore";
-
+import Tooltip from "../Tooltip.vue";
 const shipStore = useShipStore();
 
 const deckHeight = ref(shipStore.shipSpec.ship.decks.deckHeight);

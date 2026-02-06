@@ -28,20 +28,24 @@
             >Footprint Area: {{ currentDeck.polygonBounds.area.toFixed(1) }}m²</span
           >
         </div>
-        <div class="flex gap-2">
-          <button
-            @click="resetZoom"
-            class="px-3 py-1 bg-ship-accent hover:bg-blue-600 rounded text-white text-xs font-semibold"
-          >
-            Fit View
-          </button>
-          <button
-            @click="toggleGrid"
-            class="px-3 py-1"
-            :class="showGrid ? 'bg-ship-accent' : 'bg-ship-slate'"
-          >
-            {{ showGrid ? "Grid: On" : "Grid: Off" }}
-          </button>
+        <div class="flex gap-2 overflow-visible">
+          <Tooltip text="Center view on entire deck">
+            <button
+              @click="resetZoom"
+              class="px-3 py-1 bg-ship-accent hover:bg-blue-600 rounded text-white text-xs font-semibold cursor-help"
+            >
+              Fit View
+            </button>
+          </Tooltip>
+          <Tooltip text="Show/hide alignment grid">
+            <button
+              @click="toggleGrid"
+              class="px-3 py-1"
+              :class="showGrid ? 'bg-ship-accent' : 'bg-ship-slate'"
+            >
+              {{ showGrid ? "Grid: On" : "Grid: Off" }}
+            </button>
+          </Tooltip>
         </div>
       </div>
 
@@ -133,12 +137,14 @@
     </div>
 
     <!-- Add room form -->
-    <div v-if="showRoomForm && currentDeck" class="bg-ship-dark border border-ship-slate rounded p-4 space-y-4">
+    <div v-if="showRoomForm && currentDeck" class="bg-ship-dark border border-ship-slate rounded p-4 space-y-4 overflow-visible">
       <h3 class="font-semibold text-lg">New Room on Deck {{ selectedDeckIndex }}</h3>
 
-      <div class="grid grid-cols-2 gap-4">
+      <div class="grid grid-cols-2 gap-4 overflow-visible">
         <div>
-          <label class="block text-gray-400 text-sm mb-2">Room ID</label>
+          <Tooltip text="Unique identifier for this room (e.g., cargo_1, bridge_main)">
+            <label class="block text-gray-400 text-sm mb-2 cursor-help">Room ID</label>
+          </Tooltip>
           <input
             v-model="newRoom.id"
             type="text"
@@ -147,7 +153,9 @@
           />
         </div>
         <div>
-          <label class="block text-gray-400 text-sm mb-2">Type</label>
+          <Tooltip text="What purpose this room serves (affects color in 3D view)">
+            <label class="block text-gray-400 text-sm mb-2 cursor-help">Type</label>
+          </Tooltip>
           <select
             v-model="newRoom.type"
             class="w-full bg-ship-navy border border-ship-slate rounded px-3 py-2 text-white text-sm"
@@ -161,9 +169,11 @@
         </div>
       </div>
 
-      <div class="grid grid-cols-3 gap-4">
-        <div>
-          <label class="block text-gray-400 text-sm mb-2">Width (m)</label>
+      <div class="grid grid-cols-3 gap-4 overflow-visible">
+        <div class="overflow-visible">
+          <Tooltip text="X-axis dimension (port-to-starboard)">
+            <label class="block text-gray-400 text-sm mb-2 cursor-help">Width (m)</label>
+          </Tooltip>
           <input
             v-model.number="newRoom.width"
             type="number"
@@ -172,8 +182,10 @@
             class="w-full bg-ship-navy border border-ship-slate rounded px-3 py-2 text-white text-sm"
           />
         </div>
-        <div>
-          <label class="block text-gray-400 text-sm mb-2">Depth (m)</label>
+        <div class="overflow-visible">
+          <Tooltip text="Z-axis dimension (bow-to-stern)">
+            <label class="block text-gray-400 text-sm mb-2 cursor-help">Depth (m)</label>
+          </Tooltip>
           <input
             v-model.number="newRoom.depth"
             type="number"
@@ -182,8 +194,10 @@
             class="w-full bg-ship-navy border border-ship-slate rounded px-3 py-2 text-white text-sm"
           />
         </div>
-        <div>
-          <label class="block text-gray-400 text-sm mb-2">Rotation (°)</label>
+        <div class="overflow-visible">
+          <Tooltip text="Rotate room to orient interior layout (0-360 degrees)">
+            <label class="block text-gray-400 text-sm mb-2 cursor-help">Rotation (°)</label>
+          </Tooltip>
           <input
             v-model.number="newRoom.rotation"
             type="number"
@@ -197,7 +211,7 @@
 
       <div>
         <label class="block text-gray-400 text-sm mb-2">Position (click on canvas to set)</label>
-        <div class="grid grid-cols-2 gap-4">
+        <div class="grid grid-cols-2 gap-4 overflow-visible">
           <div>
             <label class="text-xs text-gray-500">X</label>
             <input
@@ -356,6 +370,7 @@ import { ref, computed, onMounted, onUnmounted, watch } from "vue";
 import { useShipStore } from "@/stores/shipStore";
 import { RoomType, RoomShapeType } from "@core/index";
 import ConfirmDialog from "../ConfirmDialog.vue";
+import Tooltip from "../Tooltip.vue";
 
 // ============================================================================
 // STATE
