@@ -337,12 +337,25 @@
       </div>
     </div>
   </div>
+
+  <!-- Delete confirmation dialog -->
+  <ConfirmDialog
+    v-if="showDeleteConfirm"
+    title="Delete Room?"
+    message="Are you sure you want to delete this room? This action cannot be undone."
+    confirmText="Delete"
+    cancelText="Cancel"
+    isDangerous
+    @confirm="confirmDeleteRoom"
+    @cancel="cancelDeleteRoom"
+  />
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch } from "vue";
 import { useShipStore } from "@/stores/shipStore";
 import { RoomType, RoomShapeType } from "@core/index";
+import ConfirmDialog from "../ConfirmDialog.vue";
 
 // ============================================================================
 // STATE
@@ -389,6 +402,10 @@ const editRoom = ref({
   posX: 0,
   posZ: 0,
 });
+
+// Delete confirmation
+const showDeleteConfirm = ref(false);
+const roomToDelete = ref<string | null>(null);
 
 // New room form
 const newRoom = ref({
@@ -974,14 +991,36 @@ function selectRoom(roomId: string) {
 }
 
 /**
- * Delete a room
+ * Delete a room (show confirmation first)
  */
 function deleteRoom(roomId: string) {
+  roomToDelete.value = roomId;
+  showDeleteConfirm.value = true;
+}
+
+/**
+ * Confirm deletion of a room
+ */
+function confirmDeleteRoom() {
+  if (!roomToDelete.value) return;
+  
+  const roomId = roomToDelete.value;
   shipStore.deleteRoom(roomId);
   if (selectedRoomId.value === roomId) {
     selectedRoomId.value = null;
     shipStore.clearSelection();
   }
+  
+  roomToDelete.value = null;
+  showDeleteConfirm.value = false;
+}
+
+/**
+ * Cancel deletion
+ */
+function cancelDeleteRoom() {
+  roomToDelete.value = null;
+  showDeleteConfirm.value = false;
 }
 
 /**

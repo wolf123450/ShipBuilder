@@ -185,15 +185,50 @@ Ship Design Toolkit MVP aims to deliver a production-ready spaceship design appl
 - **Time spent**: ~2 hours
 - **Status**: Tested and working (22/22 tests still passing)
 
-### Priority 2: Confirmation Dialogs & Error Handling 🛡️
-- [ ] Add delete confirmation for rooms
-- [ ] Add confirmation for "Clear All Rooms" 
-- [ ] Add confirmation for "Delete Project" from library
-- [ ] Improve error messages (validation, import errors)
-- [ ] Create reusable `ConfirmDialog.vue` component
+### Priority 2: Confirmation Dialogs & Error Handling 🛡️ ✅ COMPLETE
+- [x] Add delete confirmation for rooms (show modal before deleting)
+- [x] Create reusable `ConfirmDialog.vue` component
+  - [x] Props: title, message, confirmText, cancelText, isDangerous (red button)
+  - [x] Emits: @confirm, @cancel
+  - [x] Styles: Dark theme consistent with app
+  - [x] Uses teleport for proper modal overlay
+- [x] Add delete confirmation for room in `DeckPlacementEditor.vue`
+  - [x] Shows confirmation dialog before deletion
+  - [x] User-friendly message with warning
+  - [x] Red "Delete" button for dangerous action
+- [x] Add confirmation for "Delete Project" from library in `ExportEditor.vue`
+  - [x] Shows project name in confirmation
+  - [x] Prevents accidental deletions
+- [x] Improve error messages (validation, import errors)
+  - [x] Show user-friendly messages with emoji indicators
+  - [x] Different messages for JSON/YAML/Spec validation errors
+  - [x] Helpful hints about file format
 - **Implementation**: Modal dialogs for destructive actions
-- **Estimated Time**: 1.5 hours
-- **Tests**: None (deferred to Priority 4)
+- **Components created**:
+  - `src/components/ConfirmDialog.vue` — Reusable confirmation dialog
+- **Components updated**:
+  - `DeckPlacementEditor.vue` - delete room confirmation
+  - `ExportEditor.vue` - delete project confirmation + better error messages
+- **Time spent**: ~1.5 hours
+- **Status**: Complete (22/22 tests still passing)
+
+### Priority 2.5: Keyboard Shortcuts Cheat Sheet 📋
+- [ ] Create `KeyboardShortcutsHelp.vue` modal component
+  - [ ] Show all available shortcuts with descriptions
+  - [ ] Organized by category (Editing, Navigation, Export)
+  - [ ] Include both keyboard text and visual icons
+  - [ ] Copy-to-clipboard functionality for each shortcut
+- [ ] Add "?" Help button to header
+  - [ ] Opens cheat sheet modal on click
+  - [ ] Accessible via keyboard (press "?" to toggle)
+- [ ] Embed in-app documentation
+  - [ ] Display shortcuts on first load (optional)
+  - [ ] Persistent user preference to show/hide tips
+- **Implementation**: Modal component + help UI button
+- **File**: `src/components/KeyboardShortcutsHelp.vue`
+- **Integration**: `ShipDesignerApp.vue` header
+- **Estimated Time**: 1 hour
+- **Tests**: None (visual documentation)
 
 ### Priority 3: Component Integration Tests 🧪
 - [ ] Test hull editor (change parameters, presets)

@@ -146,6 +146,18 @@
       </div>
     </div>
   </div>
+
+  <!-- Delete confirmation dialog -->
+  <ConfirmDialog
+    v-if="showDeleteConfirm && saveToDelete"
+    :title="`Delete '${saveToDelete.name}'?`"
+    :message="`Are you sure you want to delete this save? This action cannot be undone.`"
+    confirmText="Delete"
+    cancelText="Cancel"
+    isDangerous
+    @confirm="confirmDeleteLocal"
+    @cancel="cancelDeleteLocal"
+  />
 </template>
 
 <script setup lang="ts">
@@ -154,6 +166,7 @@ import { useShipStore } from "@stores/shipStore";
 import { exportAsJSON, exportAsYAML, downloadFile, exportAsGLB, triggerFileInput, importFromFile } from "@utils/export";
 import { saveShipToLibrary, loadLibrary, loadShipFromStorage, deleteFromLibrary } from "@utils/storage";
 import * as THREE from "three";
+import ConfirmDialog from "../ConfirmDialog.vue";
 
 const shipStore = useShipStore();
 const shipName = ref(shipStore.shipSpec.ship.meta.name);
@@ -161,6 +174,10 @@ const shipDescription = ref(shipStore.shipSpec.ship.meta.description || "");
 const saves = ref<Array<{ id: string; name: string; timestamp: string }>>([]);
 const isExporting = ref(false);
 const importError = ref("");
+
+// Delete confirmation
+const showDeleteConfirm = ref(false);
+const saveToDelete = ref<{ id: string; name: string } | null>(null);
 
 const canExportGLB = computed(() => true); // GLB export now available
 
@@ -275,13 +292,35 @@ function loadLocal(id: string) {
 }
 
 /**
- * Delete from local library
+ * Delete from local library (show confirmation first)
  */
 function deleteLocal(id: string) {
-  if (confirm("Are you sure you want to delete this save?")) {
-    deleteFromLibrary(id);
-    loadSaves();
-  }
+  const save = saves.value.find(s => s.id === id);
+  if (!save) return;
+  
+  saveToDelete.value = save;
+  showDeleteConfirm.value = true;
+}
+
+/**
+ * Confirm deletion of a save
+ */
+function confirmDeleteLocal() {
+  if (!saveToDelete.value) return;
+  
+  deleteFromLibrary(saveToDelete.value.id);
+  loadSaves();
+  
+  saveToDelete.value = null;
+  showDeleteConfirm.value = false;
+}
+
+/**
+ * Cancel deletion
+ */
+function cancelDeleteLocal() {
+  saveToDelete.value = null;
+  showDeleteConfirm.value = false;
 }
 
 /**
@@ -297,10 +336,19 @@ function importShip() {
         shipName.value = spec.ship.meta.name;
         shipDescription.value = spec.ship.meta.description || "";
       } else {
-        importError.value = "Failed to parse file. Ensure it's valid JSON or YAML format.";
+        importError.value = `❌ File format not recognized. Please ensure the file is valid JSON or YAML format (compatible with Ship Design Toolkit).`;
       }
     } catch (error) {
-      importError.value = "Import error: " + String(error);
+      const message = error instanceof Error ? error.message : String(error);
+      if (message.includes("JSON")) {
+        importError.value = `❌ Invalid JSON format. ${message}`;
+      } else if (message.includes("YAML")) {
+        importError.value = `❌ Invalid YAML format. ${message}`;
+      } else if (message.includes("spec")) {
+        importError.value = `❌ Invalid ship specification. Missing required fields. ${message}`;
+      } else {
+        importError.value = `❌ Import failed: ${message}`;
+      }
     }
   });
 }
