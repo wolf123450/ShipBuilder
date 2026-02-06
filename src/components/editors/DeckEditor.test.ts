@@ -20,13 +20,13 @@ describe("DeckEditor Component", () => {
     const wrapper = mount(DeckEditor);
 
     const inputFields = wrapper.findAll("input[type='number']");
-    expect(inputFields[0].element.value).toBe(
+    expect((inputFields[0].element as HTMLInputElement).value).toBe(
       String(store.shipSpec.ship.decks.deckHeight)
     );
-    expect(inputFields[1].element.value).toBe(
+    expect((inputFields[1].element as HTMLInputElement).value).toBe(
       String(store.shipSpec.ship.decks.startY)
     );
-    expect(inputFields[2].element.value).toBe(
+    expect((inputFields[2].element as HTMLInputElement).value).toBe(
       String(store.shipSpec.ship.decks.endY)
     );
   });
@@ -215,7 +215,7 @@ describe("DeckEditor Component", () => {
     await new Promise((resolve) => setTimeout(resolve, 100));
 
     const deckHeightInput = wrapper.findAll("input[type='number']")[0];
-    expect(parseFloat(deckHeightInput.element.value)).toBe(2.8);
+    expect(parseFloat((deckHeightInput.element as HTMLInputElement).value)).toBe(2.8);
   });
 
   it("calculates deck count correctly with different configurations", async () => {

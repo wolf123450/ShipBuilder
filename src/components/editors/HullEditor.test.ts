@@ -21,13 +21,13 @@ describe("HullEditor Component", () => {
 
     const inputFields = wrapper.findAll("input[type='number']");
     // First three are length, beam, height
-    expect(inputFields[0].element.value).toBe(
+    expect((inputFields[0].element as HTMLInputElement).value).toBe(
       String(store.shipSpec.ship.hull.length)
     );
-    expect(inputFields[1].element.value).toBe(
+    expect((inputFields[1].element as HTMLInputElement).value).toBe(
       String(store.shipSpec.ship.hull.maxBeam)
     );
-    expect(inputFields[2].element.value).toBe(
+    expect((inputFields[2].element as HTMLInputElement).value).toBe(
       String(store.shipSpec.ship.hull.maxHeight)
     );
   });
@@ -112,7 +112,7 @@ describe("HullEditor Component", () => {
 
       expect(updateSpy).toHaveBeenCalled();
       const lastCall = updateSpy.mock.calls[updateSpy.mock.calls.length - 1];
-      expect(lastCall[0].spine.points.length).toBe(initialPointCount + 1);
+      expect((lastCall?.[0] as any)?.spine?.points?.length).toBe(initialPointCount + 1);
     }
   });
 
@@ -131,7 +131,7 @@ describe("HullEditor Component", () => {
         await wrapper.vm.$nextTick();
 
         const lastCall = updateSpy.mock.calls[updateSpy.mock.calls.length - 1];
-        expect(lastCall[0].spine.points.length).toBe(initialPointCount - 1);
+        expect((lastCall?.[0] as any)?.spine?.points?.length).toBe(initialPointCount - 1);
       }
     }
   });
@@ -282,6 +282,6 @@ describe("HullEditor Component", () => {
     await new Promise((resolve) => setTimeout(resolve, 100)); // Wait for watch
 
     const lengthInput = wrapper.findAll("input[type='number']")[0];
-    expect(parseInt(lengthInput.element.value)).toBe(120);
+    expect(parseInt((lengthInput.element as HTMLInputElement).value)).toBe(120);
   });
 });

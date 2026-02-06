@@ -43,7 +43,7 @@ describe("ExportEditor Component", () => {
     const wrapper = mount(ExportEditor);
 
     const nameInput = wrapper.find("input[type='text']");
-    expect(nameInput.element.value).toBe("Test Cruiser");
+    expect((nameInput.element as HTMLInputElement).value).toBe("Test Cruiser");
   });
 
   it("updates ship name when input changes", async () => {
@@ -204,7 +204,7 @@ describe("ExportEditor Component", () => {
       await deleteButton.trigger("click");
       await wrapper.vm.$nextTick();
 
-      expect(wrapper.vm.showDeleteConfirm).toBe(true);
+      expect((wrapper.vm as any).showDeleteConfirm).toBe(true);
     }
   });
 
@@ -238,7 +238,7 @@ describe("ExportEditor Component", () => {
   });
 
   it("displays import error when import fails", async () => {
-    let fileCallback: ((file: any) => Promise<void>) | null = null;
+    let fileCallback: ((file: any) => Promise<void>) | undefined;
 
     vi.mocked(exportUtils.triggerFileInput).mockImplementation(
       ((callback: (file: any) => Promise<void>) => {
@@ -259,7 +259,7 @@ describe("ExportEditor Component", () => {
         new Error("Invalid JSON format")
       );
 
-      await fileCallback({ name: "bad.json" } as any);
+      await fileCallback!({ name: "bad.json" } as any);
       await wrapper.vm.$nextTick();
 
       expect(wrapper.text()).toContain("Invalid JSON format");
@@ -268,7 +268,7 @@ describe("ExportEditor Component", () => {
 
   it("clears import error on successful import", async () => {
     const store = useShipStore();
-    let fileCallback: ((file: any) => Promise<void>) | null = null;
+    let fileCallback: ((file: any) => Promise<void>) | undefined;
 
     vi.mocked(exportUtils.triggerFileInput).mockImplementation(
       ((callback: (file: any) => Promise<void>) => {
@@ -283,19 +283,19 @@ describe("ExportEditor Component", () => {
       vi.mocked(exportUtils.importFromFile).mockRejectedValueOnce(
         new Error("Bad file")
       );
-      await fileCallback({ name: "bad.json" } as any);
+      await fileCallback!({ name: "bad.json" } as any);
       await wrapper.vm.$nextTick();
 
-      expect(wrapper.vm.importError).toBeTruthy();
+      expect((wrapper.vm as any).importError).toBeTruthy();
 
       // Then simulate success
       vi.mocked(exportUtils.importFromFile).mockResolvedValueOnce(
         store.shipSpec
       );
-      await fileCallback({ name: "good.json" } as any);
+      await fileCallback!({ name: "good.json" } as any);
       await wrapper.vm.$nextTick();
 
-      expect(wrapper.vm.importError).toBe("");
+      expect((wrapper.vm as any).importError).toBe("");
     }
   });
 });

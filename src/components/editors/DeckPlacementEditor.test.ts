@@ -3,6 +3,7 @@ import { mount } from "@vue/test-utils";
 import { createPinia, setActivePinia } from "pinia";
 import DeckPlacementEditor from "./DeckPlacementEditor.vue";
 import { useShipStore } from "@stores/shipStore";
+import type { RoomShapeType, RoomType } from "@/types";
 
 describe("DeckPlacementEditor Component", () => {
   beforeEach(() => {
@@ -87,7 +88,7 @@ describe("DeckPlacementEditor Component", () => {
       await addButton.trigger("click");
       await wrapper.vm.$nextTick();
 
-      expect(wrapper.vm.showRoomForm).toBe(true);
+      expect((wrapper.vm as any).showRoomForm).toBe(true);
       expect(wrapper.text()).toContain("New Room on Deck");
     }
   });
@@ -135,7 +136,7 @@ describe("DeckPlacementEditor Component", () => {
 
     if (store.shipSpec.ship.rooms.length > 0) {
       const roomId = store.shipSpec.ship.rooms[0].id;
-      wrapper.vm.selectedRoomId = roomId;
+      (wrapper.vm as any).selectedRoomId = roomId;
       await wrapper.vm.$nextTick();
 
       // Trigger updateSelection via watcher
@@ -173,7 +174,7 @@ describe("DeckPlacementEditor Component", () => {
         await firstEditButton.trigger("click");
         await wrapper.vm.$nextTick();
 
-        expect(wrapper.vm.showEditModal).toBe(true);
+        expect((wrapper.vm as any).showEditModal).toBe(true);
       }
     }
   });
@@ -237,7 +238,7 @@ describe("DeckPlacementEditor Component", () => {
         await firstDeleteButton.trigger("click");
         await wrapper.vm.$nextTick();
 
-        expect(wrapper.vm.showDeleteConfirm).toBe(true);
+        expect((wrapper.vm as any).showDeleteConfirm).toBe(true);
       }
     }
   });
@@ -249,14 +250,14 @@ describe("DeckPlacementEditor Component", () => {
     const wrapper = mount(DeckPlacementEditor);
 
     // Test that getRoomCorners function exists and works
-    if (wrapper.vm.getRoomCorners) {
+    if ((wrapper.vm as any).getRoomCorners) {
       const testRoom = {
         position: { x: 0, z: 0 },
         shape: { size: [4, 6] },
         rotationDeg: 0,
       };
 
-      const corners = wrapper.vm.getRoomCorners(testRoom);
+      const corners = (wrapper.vm as any).getRoomCorners(testRoom);
       expect(Array.isArray(corners)).toBe(true);
       expect(corners.length).toBe(4); // Rectangle should have 4 corners
     }
@@ -270,9 +271,9 @@ describe("DeckPlacementEditor Component", () => {
       await wrapper.vm.$nextTick();
 
       // Check that getRoomColor function exists
-      if (wrapper.vm.getRoomColor) {
+      if ((wrapper.vm as any).getRoomColor) {
         const roomType = store.shipSpec.ship.rooms[0].type;
-        const color = wrapper.vm.getRoomColor(roomType);
+        const color = (wrapper.vm as any).getRoomColor(roomType);
         expect(typeof color).toBe("string");
         expect(color).toMatch(/^#/); // Should be hex color code
       }
@@ -285,9 +286,9 @@ describe("DeckPlacementEditor Component", () => {
     // Add a rotated room
     const rotatedRoom = {
       id: "rotated_test",
-      type: "crew" as any,
+      type: "crew" as RoomType,
       deck: 0,
-      shape: { type: 0, size: [4, 4] },
+      shape: { type: 0 as unknown as RoomShapeType, size: [4, 4] as [number, number] },
       position: { x: 5, z: 5 },
       rotationDeg: 45,
       tags: [],
