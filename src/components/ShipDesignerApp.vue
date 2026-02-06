@@ -27,8 +27,16 @@
           
           <!-- Keyboard shortcut hint -->
           <div class="text-xs text-gray-500 ml-4">
-            (Ctrl+S to save)
+            (Ctrl+S to save, ? for help)
           </div>
+
+          <button
+            @click="helpDialogRef?.toggle()"
+            class="px-3 py-2 bg-ship-slate hover:bg-ship-accent rounded text-white font-semibold text-sm"
+            title="Show keyboard shortcuts (? key)"
+          >
+            ❓ Help
+          </button>
           
           <button
             @click="handleExport"
@@ -52,6 +60,9 @@
         <Preview3D />
       </main>
     </div>
+
+    <!-- Keyboard shortcuts help dialog -->
+    <KeyboardShortcutsHelp ref="helpDialogRef" />
   </div>
 </template>
 
@@ -62,9 +73,11 @@ import { useKeyboardShortcuts } from "@components/composables/useKeyboardShortcu
 import { saveShipToLibrary } from "@utils/storage";
 import StepEditor from "@components/StepEditor.vue";
 import Preview3D from "@components/Preview3D.vue";
+import KeyboardShortcutsHelp from "@components/KeyboardShortcutsHelp.vue";
 
 const shipStore = useShipStore();
 const saveStatus = ref<"idle" | "saving" | "saved">("idle");
+const helpDialogRef = ref<any>(null);
 
 /**
  * Save project to localStorage with Ctrl+S

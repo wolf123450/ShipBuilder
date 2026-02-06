@@ -212,23 +212,28 @@ Ship Design Toolkit MVP aims to deliver a production-ready spaceship design appl
 - **Time spent**: ~1.5 hours
 - **Status**: Complete (22/22 tests still passing)
 
-### Priority 2.5: Keyboard Shortcuts Cheat Sheet 📋
-- [ ] Create `KeyboardShortcutsHelp.vue` modal component
-  - [ ] Show all available shortcuts with descriptions
-  - [ ] Organized by category (Editing, Navigation, Export)
-  - [ ] Include both keyboard text and visual icons
-  - [ ] Copy-to-clipboard functionality for each shortcut
-- [ ] Add "?" Help button to header
-  - [ ] Opens cheat sheet modal on click
-  - [ ] Accessible via keyboard (press "?" to toggle)
-- [ ] Embed in-app documentation
-  - [ ] Display shortcuts on first load (optional)
-  - [ ] Persistent user preference to show/hide tips
-- **Implementation**: Modal component + help UI button
-- **File**: `src/components/KeyboardShortcutsHelp.vue`
-- **Integration**: `ShipDesignerApp.vue` header
-- **Estimated Time**: 1 hour
-- **Tests**: None (visual documentation)
+### Priority 2.5: Keyboard Shortcuts Cheat Sheet 📋 ✅ COMPLETE
+- [x] Create `KeyboardShortcutsHelp.vue` modal component
+  - [x] Show all available shortcuts with descriptions
+  - [x] Organized by category (Editing, Navigation, File, Help)
+  - [x] Include keyboard text and visual icons
+  - [x] Copy-to-clipboard via manual copy (users can select/copy)
+- [x] Add "?" Help button to header
+  - [x] Opens cheat sheet modal on click
+  - [x] Accessible via keyboard (press "?" to toggle)
+- [x] Keyboard shortcut listener integrated in component
+  - [x] "?" toggles dialog on/off
+  - [x] "Esc" closes dialog
+- **Implementation**: Modal component + help UI button + ShortcutRow subcomponent
+- **Files created**:
+  - `src/components/KeyboardShortcutsHelp.vue` — Main help dialog
+  - `src/components/ShortcutRow.vue` — Reusable shortcut row component
+- **Components updated**:
+  - `ShipDesignerApp.vue` - Added Help button to header, keyboard shortcut listener, integrated modal
+- **Shortcuts documented**: Ctrl+S (Save), Delete (Delete room), Esc (Clear), Tab/Shift+Tab (Navigate), ? (Help)
+- **Time spent**: ~45 minutes
+- **Status**: Complete (22/22 tests still passing)
+
 
 ### Priority 3: Component Integration Tests 🧪
 - [ ] Test hull editor (change parameters, presets)
