@@ -13,9 +13,9 @@ Ship Design Toolkit MVP aims to deliver a production-ready spaceship design appl
 | **Phase 1** | Core MVP (mesh, preview, workflow) | ✅ COMPLETE | 22/22 passing | Visual feedback loop implemented |
 | **Phase 2** | 2D Room Placement (editor & collision) | ✅ COMPLETE | 22/22 passing | Full drag-drop, SAT collision detection, CRUD |
 | **Phase 3** | Export & Import (formats & library) | ✅ COMPLETE | 22/22 passing | JSON/YAML/GLB export + localStorage library |
-| **Phase 4** | Polish & Optimization | ⏳ PENDING | — | Deferred (not blocking MVP release) |
+| **Phase 4** | Polish & Optimization | 🔶 95% COMPLETE | 94/94 passing | Priorities 1-4 done, P5 optional optimization |
 
-**MVP Readiness**: ~95% complete. Core features fully implemented. Ready for release with Phase 4 items moved to future sprints.
+**MVP Readiness**: ~99% complete. Core features fully implemented. All polish items done. Ready for release.
 
 ---
 
@@ -259,14 +259,28 @@ Ship Design Toolkit MVP aims to deliver a production-ready spaceship design appl
 - **Time spent**: ~2 hours
 - **Status**: Complete (94/94 tests passing)
 
-### Priority 4: Tooltips & UX Polish ✨
-- [ ] Add tooltips to all hull parameters
-- [ ] Add tooltips to deck controls
-- [ ] Add tooltips to room editor
-- [ ] Add tooltips to export buttons
-- [ ] Create reusable `Tooltip.vue` component or use HTML title attributes
-- **Estimated Time**: 1-2 hours
-- **Tests**: None (visual only)
+### Priority 4: Tooltips & UX Polish ✨ ✅ COMPLETE
+- [x] Add tooltips to all hull parameters
+- [x] Add tooltips to deck controls
+- [x] Add tooltips to room editor
+- [x] Add tooltips to export buttons
+- [x] Create reusable `Tooltip.vue` component with smart boundary detection
+- **Implementation**: Custom Tooltip.vue with Teleport, fixed positioning, viewport boundary detection
+- **Features**: 
+  - Teleports to body to escape stacking context
+  - Smart repositioning (above/below/left/right) based on viewport boundaries
+  - Very high z-index (z-[9999]) to appear above 3D preview
+  - Mouse-based visibility with arrow pointer
+  - Context-sensitive help for all parameters and buttons
+- **Files created**:
+  - `src/components/Tooltip.vue` — Smart boundary-detecting tooltip component
+- **Components updated**:
+  - HullEditor.vue - 5 tooltips for hull dimensions and profile
+  - DeckEditor.vue - 3 tooltips for deck configuration
+  - ExportEditor.vue - 5 tooltips for project metadata and export options
+  - DeckPlacementEditor.vue - 8 tooltips for room properties and controls
+- **Time spent**: ~1.5 hours
+- **Status**: Complete (94/94 tests passing)
 
 ### Priority 5: Performance Optimization 🚀 [LOWER PRIORITY]
 - [ ] Profile mesh generation with DevTools
