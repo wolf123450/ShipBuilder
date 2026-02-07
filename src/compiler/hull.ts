@@ -2,9 +2,10 @@
  * Hull compilation module
  * Responsible for converting hull spec into queryable geometry
  * Supports dual algorithms: parametric surface (high quality) and voxel marching cubes (fast)
+ * Also supports multi-hull compositions and transformations
  */
 
-import { HullSpec, Vector3, AABB, Vector2, HullGenerationAlgorithm, SectionShape } from "@core/index";
+import { HullSpec, Vector3, AABB, Vector2, HullGenerationAlgorithm, SectionShape, WorldTransform } from "@core/index";
 import { createCatmullRomSpline, evaluateSuperellipse } from "@utils/parametricSurfaceUtils";
 
 /**
@@ -370,6 +371,191 @@ export class VoxelMarchingCubesHull extends BaseHull {
 }
 
 /**
+ * Transformed Hull Wrapper
+ * Applies a 3D transformation (position, rotation, scale) to a base hull
+ * Useful for placing secondary hulls in world space
+ */
+export class TransformedHull extends BaseHull implements HullVolume {
+  private baseHull: HullVolume;
+  private transform: WorldTransform;
+  private transformedBounds: AABB;
+
+  constructor(baseHull: HullVolume, spec: HullSpec) {
+    super(spec);
+    this.baseHull = baseHull;
+    this.transform = spec.worldTransform ?? {};
+    this.transformedBounds = this.computeTransformedBounds();
+  }
+
+  private computeTransformedBounds(): AABB {
+    const baseBounds = this.baseHull.bounds();
+    const pos = this.transform.position ?? { x: 0, y: 0, z: 0 };
+    const scale = this.transform.scale ?? 1.0;
+
+    return {
+      min: {
+        x: baseBounds.min.x * scale + pos.x,
+        y: baseBounds.min.y * scale + pos.y,
+        z: baseBounds.min.z * scale + pos.z,
+      },
+      max: {
+        x: baseBounds.max.x * scale + pos.x,
+        y: baseBounds.max.y * scale + pos.y,
+        z: baseBounds.max.z * scale + pos.z,
+      },
+    };
+  }
+
+  private worldToLocal(p: Vector3): Vector3 {
+    const pos = this.transform.position ?? { x: 0, y: 0, z: 0 };
+    const scale = this.transform.scale ?? 1.0;
+    const rot = this.transform.rotation ?? { x: 0, y: 0, z: 0 };
+
+    let local = {
+      x: p.x - pos.x,
+      y: p.y - pos.y,
+      z: p.z - pos.z,
+    };
+
+    local.x /= scale;
+    local.y /= scale;
+    local.z /= scale;
+
+    const rx = ((rot.x ?? 0) * Math.PI) / 180;
+    const ry = ((rot.y ?? 0) * Math.PI) / 180;
+    const rz = ((rot.z ?? 0) * Math.PI) / 180;
+
+    let cosZ = Math.cos(-rz);
+    let sinZ = Math.sin(-rz);
+    let xRot = local.x * cosZ - local.z * sinZ;
+    let zRot = local.x * sinZ + local.z * cosZ;
+    local.x = xRot;
+    local.z = zRot;
+
+    let cosY = Math.cos(-ry);
+    let sinY = Math.sin(-ry);
+    xRot = local.x * cosY + local.z * sinY;
+    zRot = -local.x * sinY + local.z * cosY;
+    local.x = xRot;
+    local.z = zRot;
+
+    let cosX = Math.cos(-rx);
+    let sinX = Math.sin(-rx);
+    let yRot = local.y * cosX - local.z * sinX;
+    zRot = local.y * sinX + local.z * cosX;
+    local.y = yRot;
+    local.z = zRot;
+
+    return local;
+  }
+
+  contains(p: Vector3): boolean {
+    return this.baseHull.contains(this.worldToLocal(p));
+  }
+
+  distance(p: Vector3): number {
+    const scale = this.transform.scale ?? 1.0;
+    return this.baseHull.distance(this.worldToLocal(p)) * scale;
+  }
+
+  normal(p: Vector3): Vector3 {
+    return this.baseHull.normal(this.worldToLocal(p));
+  }
+
+  bounds(): AABB {
+    return this.transformedBounds;
+  }
+
+  sliceY(y: number, resolution: number): Vector2[] {
+    const pos = this.transform.position ?? { x: 0, y: 0, z: 0 };
+    const localY = y - pos.y;
+    return this.baseHull.sliceY(localY, resolution);
+  }
+
+  algorithmType(): string {
+    return `transformed_${this.baseHull.algorithmType()}`;
+  }
+}
+
+/**
+ * Union Hull - Logical OR of multiple hull volumes
+ */
+export class UnionHull extends BaseHull implements HullVolume {
+  private hulls: HullVolume[];
+
+  constructor(hulls: HullVolume[], spec: HullSpec) {
+    super(spec);
+    this.hulls = hulls;
+  }
+
+  contains(p: Vector3): boolean {
+    return this.hulls.some((hull) => hull.contains(p));
+  }
+
+  distance(p: Vector3): number {
+    let minDist = Number.POSITIVE_INFINITY;
+    for (const hull of this.hulls) {
+      const d = hull.distance(p);
+      if (d < minDist) {
+        minDist = d;
+      }
+    }
+    return minDist;
+  }
+
+  normal(p: Vector3): Vector3 {
+    let closestHull = this.hulls[0];
+    let minDist = Math.abs(this.hulls[0].distance(p));
+
+    for (let i = 1; i < this.hulls.length; i++) {
+      const d = Math.abs(this.hulls[i].distance(p));
+      if (d < minDist) {
+        minDist = d;
+        closestHull = this.hulls[i];
+      }
+    }
+
+    return closestHull.normal(p);
+  }
+
+  bounds(): AABB {
+    if (this.hulls.length === 0) {
+      return {
+        min: { x: 0, y: 0, z: 0 },
+        max: { x: 0, y: 0, z: 0 },
+      };
+    }
+
+    let bounds = this.hulls[0].bounds();
+    for (let i = 1; i < this.hulls.length; i++) {
+      const b = this.hulls[i].bounds();
+      bounds = {
+        min: {
+          x: Math.min(bounds.min.x, b.min.x),
+          y: Math.min(bounds.min.y, b.min.y),
+          z: Math.min(bounds.min.z, b.min.z),
+        },
+        max: {
+          x: Math.max(bounds.max.x, b.max.x),
+          y: Math.max(bounds.max.y, b.max.y),
+          z: Math.max(bounds.max.z, b.max.z),
+        },
+      };
+    }
+    return bounds;
+  }
+
+  sliceY(y: number, resolution: number): Vector2[] {
+    if (this.hulls.length === 0) return [];
+    return this.hulls[0].sliceY(y, resolution);
+  }
+
+  algorithmType(): string {
+    return `union_${this.hulls.length}_hulls`;
+  }
+}
+
+/**
  * Factory function to create hull volumes from spec
  * Selects algorithm based on spec.generationAlgorithm (default: parametric_surface)
  */
@@ -380,16 +566,61 @@ export function createHullVolume(spec: HullSpec): HullVolume {
 
   const algorithm = spec.generationAlgorithm ?? HullGenerationAlgorithm.ParametricSurface;
 
+  let primaryHull: HullVolume;
+
   switch (algorithm) {
     case HullGenerationAlgorithm.ParametricSurface:
       console.log("✓ Creating parametric surface hull (Catmull-Rom spline)");
-      return new ParametricSurfaceHull(spec);
+      primaryHull = new ParametricSurfaceHull(spec);
+      break;
 
     case HullGenerationAlgorithm.VoxelMarchingCubes:
       console.log("✓ Creating voxel marching cubes hull (fast preview)");
-      return new VoxelMarchingCubesHull(spec);
+      primaryHull = new VoxelMarchingCubesHull(spec);
+      break;
 
     default:
       throw new Error(`Unknown hull generation algorithm: ${algorithm}`);
   }
+
+  // If this is a primary hull with secondary hulls, wrap in Union
+  // Note: Secondary hulls should be passed separately through the compiler
+  // This factory only creates individual hulls
+  return primaryHull;
+}
+
+/**
+ * Factory function to create a multi-hull composition
+ * Combines primary hull with secondary hulls into a UnionHull
+ *
+ * @param primarySpec Primary hull specification
+ * @param secondarySpecs Optional array of secondary hull specifications
+ * @returns UnionHull if secondaries provided, otherwise primary hull
+ */
+export function createMultiHullVolume(primarySpec: HullSpec, secondarySpecs?: HullSpec[]): HullVolume {
+  const primaryHull = createHullVolume(primarySpec);
+
+  if (!secondarySpecs || secondarySpecs.length === 0) {
+    return primaryHull;
+  }
+
+  console.log(`✓ Composing ${secondarySpecs.length} secondary hull(s) with primary hull`);
+
+  const allHulls: HullVolume[] = [primaryHull];
+
+  for (const secondarySpec of secondarySpecs) {
+    const secondaryHull = createHullVolume(secondarySpec);
+
+    // Wrap with transform if specified
+    if (secondarySpec.worldTransform) {
+      console.log(
+        `  - Secondary hull with transform: ${JSON.stringify(secondarySpec.worldTransform)}`
+      );
+      allHulls.push(new TransformedHull(secondaryHull, secondarySpec));
+    } else {
+      allHulls.push(secondaryHull);
+    }
+  }
+
+  return new UnionHull(allHulls, primarySpec);
 }

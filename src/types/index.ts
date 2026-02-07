@@ -81,6 +81,16 @@ export interface AABB {
   max: Vector3;
 }
 
+/**
+ * 3D transformation: position, rotation, scale
+ * Used for placing secondary hulls in world space
+ */
+export interface WorldTransform {
+  position?: Vector3; // World position relative to origin (default: {0, 0, 0})
+  rotation?: { x?: number; y?: number; z?: number }; // Euler angles in degrees (default: {0, 0, 0})
+  scale?: number; // Uniform scale factor (default: 1.0)
+}
+
 // ============================================================================
 // HULL DEFINITIONS
 // ============================================================================
@@ -99,7 +109,7 @@ export interface HullSpec {
   spine: {
     points: HullSpinePoint[];
   };
-  // Post-MVP: Dual algorithm support
+  // Post-MVP: Dual algorithm support + transformations
   generationAlgorithm?: HullGenerationAlgorithm; // Default: parametric_surface
   voxelResolution?: number; // Only for voxel; default 1.0m
   spineSampleRate?: number; // Only for parametric; default 50 samples
@@ -111,6 +121,8 @@ export interface HullSpec {
   topBias?: number; // Asymmetry: 0.5-2.0, where 1.0 = symmetric
   sectionRotation?: number; // Yaw rotation per section in degrees
   hasInteriorDecks?: boolean; // Default: true; false for engine pods, etc.
+  worldTransform?: WorldTransform; // For secondary hulls positioning
+  socketConstraint?: string; // Named location hint (e.g., "engine_pod_left")
 }
 
 // ============================================================================
@@ -190,6 +202,7 @@ export interface ShipSpec {
     decks: DecksSpec;
     rooms: RoomSpec[];
     windows: WindowsSpec;
+    secondaryHulls?: HullSpec[]; // Post-MVP: Engine pods, saucers, nacelles, etc.
   };
 }
 

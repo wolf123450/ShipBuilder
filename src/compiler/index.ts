@@ -4,7 +4,7 @@
  */
 
 import { ShipSpec, DerivedShipData, ValidatedRoom } from "@core/index";
-import { createHullVolume } from "./hull";
+import { createHullVolume, createMultiHullVolume } from "./hull";
 import { compileDeckFootprints, DeckCompilationParams } from "./decks";
 
 // Re-export mesh baker for convenience
@@ -15,10 +15,11 @@ export { bakeHullMesh, createPolygonMesh, createRoomMesh, type BakedMesh } from 
  * This is the main entry point for the compilation pipeline
  */
 export function compileShip(spec: ShipSpec): DerivedShipData {
-  // Stage 1: Hull resolution
-  const hullVolume = createHullVolume(spec.ship.hull);
+  // Stage 1: Hull resolution - supports both primary and secondary hulls
+  const hullVolume = createMultiHullVolume(spec.ship.hull, spec.ship.secondaryHulls);
 
-  // Stage 2: Deck resolution
+  // Stage 2: Deck resolution (only from primary hull that has interior decks)
+  // Secondary hulls don't get decks by default
   const deckParams: DeckCompilationParams = {
     deckHeight: spec.ship.decks.deckHeight,
     startY: spec.ship.decks.startY,

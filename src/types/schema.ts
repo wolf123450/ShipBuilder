@@ -21,6 +21,30 @@ import {
  */
 
 // ============================================================================
+// TRANSFORM SCHEMA
+// ============================================================================
+
+export const Vector3Schema = z.object({
+  x: z.number(),
+  y: z.number(),
+  z: z.number(),
+});
+
+export const WorldTransformSchema = z.object({
+  position: z.object({
+    x: z.number().optional(),
+    y: z.number().optional(),
+    z: z.number().optional(),
+  }).optional(),
+  rotation: z.object({
+    x: z.number().optional(),
+    y: z.number().optional(),
+    z: z.number().optional(),
+  }).optional(),
+  scale: z.number().positive().optional(),
+});
+
+// ============================================================================
 // HULL SCHEMA
 // ============================================================================
 
@@ -61,6 +85,9 @@ export const HullSpecSchema = z.object({
   topBias: z.number().min(0.5).max(2.0).optional().describe("Asymmetric height bias (0.5-2.0)"),
   sectionRotation: z.number().optional().describe("Yaw rotation per section in degrees"),
   hasInteriorDecks: z.boolean().optional().describe("Enable deck generation for this hull"),
+  // Post-MVP: Multi-hull support
+  worldTransform: WorldTransformSchema.optional().describe("3D transformation for secondary hulls"),
+  socketConstraint: z.string().optional().describe("Named location hint for placement"),
 });
 
 // ============================================================================
@@ -140,6 +167,7 @@ export const ShipSpecSchema = z.object({
     decks: DecksSpecSchema,
     rooms: z.array(RoomSpecSchema),
     windows: WindowsSpecSchema,
+    secondaryHulls: z.array(HullSpecSchema).optional().describe("Secondary hulls for engines, pods, etc."),
   }),
 });
 
