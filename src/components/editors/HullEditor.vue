@@ -50,6 +50,167 @@
 
     <!-- Hull spine profile -->
     <div class="bg-ship-dark border border-ship-slate rounded p-4 space-y-4 overflow-visible">
+      <h3 class="font-semibold text-lg">Generation Algorithm</h3>
+      <p class="text-gray-400 text-xs mb-3">
+        Choose between high-quality parametric surfaces (recommended) or fast voxel preview.
+      </p>
+
+      <div class="grid grid-cols-2 gap-3">
+        <button
+          @click="setAlgorithm('parametric_surface')"
+          :class="[
+            'px-3 py-2 rounded text-sm font-semibold transition-colors',
+            generationAlgorithm === 'parametric_surface'
+              ? 'bg-ship-accent text-white'
+              : 'bg-ship-navy hover:bg-ship-slate text-gray-300'
+          ]"
+        >
+          📐 Parametric (Recommended)
+        </button>
+        <button
+          @click="setAlgorithm('voxel_marching_cubes')"
+          :class="[
+            'px-3 py-2 rounded text-sm font-semibold transition-colors',
+            generationAlgorithm === 'voxel_marching_cubes'
+              ? 'bg-ship-accent text-white'
+              : 'bg-ship-navy hover:bg-ship-slate text-gray-300'
+          ]"
+        >
+          ⚡ Voxel (Fast)
+        </button>
+      </div>
+
+      <div v-if="generationAlgorithm === 'voxel_marching_cubes'" class="bg-ship-navy rounded p-2">
+        <label class="text-xs text-gray-400 block mb-2">Voxel Resolution (m)</label>
+        <input
+          v-model.number="voxelResolution"
+          type="number"
+          min="0.1"
+          max="2"
+          step="0.1"
+          @change="updateHull"
+          class="w-full bg-ship-dark border border-ship-slate rounded px-2 py-1 text-white text-sm"
+        />
+        <div class="text-xs text-gray-500 mt-1">Lower = higher quality but slower</div>
+      </div>
+
+      <div v-if="generationAlgorithm === 'parametric_surface'" class="bg-ship-navy rounded p-2">
+        <label class="text-xs text-gray-400 block mb-2">Spine Sample Rate</label>
+        <input
+          v-model.number="spineSampleRate"
+          type="number"
+          min="20"
+          max="200"
+          step="10"
+          @change="updateHull"
+          class="w-full bg-ship-dark border border-ship-slate rounded px-2 py-1 text-white text-sm"
+        />
+        <div class="text-xs text-gray-500 mt-1">Higher = smoother curves</div>
+      </div>
+    </div>
+
+    <!-- Hull cross-section shape -->
+    <div class="bg-ship-dark border border-ship-slate rounded p-4 space-y-4 overflow-visible">
+      <h3 class="font-semibold text-lg">Cross-Section Shape</h3>
+      <p class="text-gray-400 text-xs mb-3">
+        Control the shape of the hull cross-section at each point along the spine.
+      </p>
+
+      <div class="grid grid-cols-3 gap-2">
+        <button
+          @click="setSectionShape('ellipse')"
+          :class="[
+            'px-2 py-2 rounded text-xs font-semibold transition-colors',
+            sectionShape === 'ellipse'
+              ? 'bg-ship-accent text-white'
+              : 'bg-ship-navy hover:bg-ship-slate text-gray-300'
+          ]"
+        >
+          ⭕ Ellipse
+        </button>
+        <button
+          @click="setSectionShape('superellipse')"
+          :class="[
+            'px-2 py-2 rounded text-xs font-semibold transition-colors',
+            sectionShape === 'superellipse'
+              ? 'bg-ship-accent text-white'
+              : 'bg-ship-navy hover:bg-ship-slate text-gray-300'
+          ]"
+        >
+          ◇ Superellipse
+        </button>
+        <button
+          @click="setSectionShape('box')"
+          :class="[
+            'px-2 py-2 rounded text-xs font-semibold transition-colors',
+            sectionShape === 'box'
+              ? 'bg-ship-accent text-white'
+              : 'bg-ship-navy hover:bg-ship-slate text-gray-300'
+          ]"
+        >
+          ■ Box
+        </button>
+      </div>
+
+      <div v-if="sectionShape === 'superellipse'" class="bg-ship-navy rounded p-3 space-y-2">
+        <div>
+          <label class="text-xs text-gray-400 block mb-1">Shape X (n): {{ shapeParams.n?.toFixed(1) ?? 2 }}</label>
+          <input
+            v-model.number="shapeParams.n"
+            type="range"
+            min="0.5"
+            max="8"
+            step="0.5"
+            @change="updateHull"
+            class="w-full"
+          />
+          <div class="text-xs text-gray-500">Low = pointed, High = boxy</div>
+        </div>
+        <div>
+          <label class="text-xs text-gray-400 block mb-1">Shape Y (m): {{ shapeParams.m?.toFixed(1) ?? 2 }}</label>
+          <input
+            v-model.number="shapeParams.m"
+            type="range"
+            min="0.5"
+            max="8"
+            step="0.5"
+            @change="updateHull"
+            class="w-full"
+          />
+          <div class="text-xs text-gray-500">Low = pointed, High = boxy</div>
+        </div>
+      </div>
+
+      <div class="bg-ship-navy rounded p-2">
+        <label class="text-xs text-gray-400 block mb-1">Height Asymmetry (Top Bias): {{ topBias?.toFixed(2) ?? 1 }}</label>
+        <input
+          v-model.number="topBias"
+          type="range"
+          min="0.5"
+          max="2"
+          step="0.1"
+          @change="updateHull"
+          class="w-full"
+        />
+        <div class="text-xs text-gray-500">0.5 = flat top, 1.0 = symmetric, 2.0 = tall</div>
+      </div>
+
+      <label class="flex items-center text-xs text-gray-400 cursor-pointer">
+        <input
+          v-model="hasInteriorDecks"
+          type="checkbox"
+          @change="updateHull"
+          class="mr-2"
+        />
+        <span>This hull has interior decks</span>
+        <Tooltip text="Uncheck for engine pods, reactor cores, or other non-traversible sections">
+          <span class="ml-1 cursor-help">❓</span>
+        </Tooltip>
+      </label>
+    </div>
+
+    <!-- Hull spine profile -->
+    <div class="bg-ship-dark border border-ship-slate rounded p-4 space-y-4 overflow-visible">
       <h3 class="font-semibold text-lg">Hull Profile</h3>
       <p class="text-gray-400 text-xs">
         Adjust the radius at different points along the ship's length (0 = nose, 1 = tail).
@@ -157,6 +318,18 @@ const spine = reactive({
   points: shipStore.shipSpec.ship.hull.spine.points.map((p) => ({ ...p })),
 });
 
+// Post-MVP: New algorithm and shape options
+const generationAlgorithm = ref(shipStore.shipSpec.ship.hull.generationAlgorithm ?? "parametric_surface");
+const voxelResolution = ref(shipStore.shipSpec.ship.hull.voxelResolution ?? 1.0);
+const spineSampleRate = ref(shipStore.shipSpec.ship.hull.spineSampleRate ?? 50);
+const sectionShape = ref(shipStore.shipSpec.ship.hull.sectionShape ?? "ellipse");
+const shapeParams = reactive({
+  n: shipStore.shipSpec.ship.hull.shapeParams?.n ?? 2,
+  m: shipStore.shipSpec.ship.hull.shapeParams?.m ?? 2,
+});
+const topBias = ref(shipStore.shipSpec.ship.hull.topBias ?? 1.0);
+const hasInteriorDecks = ref(shipStore.shipSpec.ship.hull.hasInteriorDecks ?? true);
+
 /**
  * Update hull in store
  */
@@ -168,6 +341,16 @@ function updateHull() {
     spine: {
       points: spine.points.sort((a, b) => a.z - b.z), // Keep sorted
     },
+    generationAlgorithm: generationAlgorithm.value as any,
+    voxelResolution: voxelResolution.value,
+    spineSampleRate: spineSampleRate.value,
+    sectionShape: sectionShape.value as any,
+    shapeParams: {
+      n: shapeParams.n,
+      m: shapeParams.m,
+    },
+    topBias: topBias.value,
+    hasInteriorDecks: hasInteriorDecks.value,
   });
 }
 
@@ -191,6 +374,22 @@ function removePoint(idx: number) {
     spine.points.splice(idx, 1);
     updateHull();
   }
+}
+
+/**
+ * Set the hull generation algorithm
+ */
+function setAlgorithm(algo: string) {
+  generationAlgorithm.value = algo;
+  updateHull();
+}
+
+/**
+ * Set the section shape
+ */
+function setSectionShape(shape: string) {
+  sectionShape.value = shape;
+  updateHull();
 }
 
 /**

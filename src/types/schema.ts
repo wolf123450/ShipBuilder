@@ -7,6 +7,8 @@ import {
   ShipScale,
   WindowStyle,
   DeckNamingScheme,
+  HullGenerationAlgorithm,
+  SectionShape,
 } from "./index";
 
 /**
@@ -47,6 +49,18 @@ export const HullSpecSchema = z.object({
         return true;
       }, "Spine points must be sorted by z coordinate"),
   }),
+  // Post-MVP: Dual generation algorithms
+  generationAlgorithm: z.nativeEnum(HullGenerationAlgorithm).optional().describe("Mesh generation algorithm"),
+  voxelResolution: z.number().positive().optional().describe("Voxel grid resolution in meters (for voxel mode)"),
+  spineSampleRate: z.number().int().positive().optional().describe("Spine sampling rate (for parametric mode)"),
+  sectionShape: z.nativeEnum(SectionShape).optional().describe("Cross-section shape profile"),
+  shapeParams: z.object({
+    n: z.number().positive().optional(),
+    m: z.number().positive().optional(),
+  }).optional().describe("Superellipse shape parameters"),
+  topBias: z.number().min(0.5).max(2.0).optional().describe("Asymmetric height bias (0.5-2.0)"),
+  sectionRotation: z.number().optional().describe("Yaw rotation per section in degrees"),
+  hasInteriorDecks: z.boolean().optional().describe("Enable deck generation for this hull"),
 });
 
 // ============================================================================

@@ -50,6 +50,17 @@ export enum DeckNamingScheme {
   // Reserved: Custom
 }
 
+export enum HullGenerationAlgorithm {
+  ParametricSurface = "parametric_surface",
+  VoxelMarchingCubes = "voxel_marching_cubes",
+}
+
+export enum SectionShape {
+  Ellipse = "ellipse",
+  Superellipse = "superellipse",
+  Box = "box",
+}
+
 // ============================================================================
 // VECTOR & GEOMETRY
 // ============================================================================
@@ -88,6 +99,18 @@ export interface HullSpec {
   spine: {
     points: HullSpinePoint[];
   };
+  // Post-MVP: Dual algorithm support
+  generationAlgorithm?: HullGenerationAlgorithm; // Default: parametric_surface
+  voxelResolution?: number; // Only for voxel; default 1.0m
+  spineSampleRate?: number; // Only for parametric; default 50 samples
+  sectionShape?: SectionShape; // Default: ellipse
+  shapeParams?: {
+    n?: number; // Superellipse exponent for X axis
+    m?: number; // Superellipse exponent for Y axis
+  };
+  topBias?: number; // Asymmetry: 0.5-2.0, where 1.0 = symmetric
+  sectionRotation?: number; // Yaw rotation per section in degrees
+  hasInteriorDecks?: boolean; // Default: true; false for engine pods, etc.
 }
 
 // ============================================================================
