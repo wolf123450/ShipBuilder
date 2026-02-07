@@ -18,16 +18,27 @@ export function compileShip(spec: ShipSpec): DerivedShipData {
   // Stage 1: Hull resolution - supports both primary and secondary hulls
   const hullVolume = createMultiHullVolume(spec.ship.hull, spec.ship.secondaryHulls);
 
-  // Stage 2: Deck resolution (only from primary hull that has interior decks)
-  // Secondary hulls don't get decks by default
-  const deckParams: DeckCompilationParams = {
-    deckHeight: spec.ship.decks.deckHeight,
-    startY: spec.ship.decks.startY,
-    endY: spec.ship.decks.endY,
-    hullVolume,
-  };
+  // Stage 2: Deck resolution
+  // Only generate decks if primary hull has interior decks enabled
+  let deckFootprints: DerivedShipData["deckFootprints"] = [];
+  const primaryHullHasDecks = spec.ship.hull.hasInteriorDecks !== false; // Default: true
 
-  const deckFootprints = compileDeckFootprints(deckParams);
+  if (primaryHullHasDecks) {
+    // Use only the primary hull for deck generation (not the union of all hulls)
+    // This ensures secondary hulls (engines, pods) don't affect deck footprints
+    const primaryHullVolume = createHullVolume(spec.ship.hull);
+
+    const deckParams: DeckCompilationParams = {
+      deckHeight: spec.ship.decks.deckHeight,
+      startY: spec.ship.decks.startY,
+      endY: spec.ship.decks.endY,
+      hullVolume: primaryHullVolume,
+    };
+
+    deckFootprints = compileDeckFootprints(deckParams);
+  } else {
+    console.log("✓ Skipping deck generation (hasInteriorDecks: false)");
+  }
 
   // Stage 3: Room resolution (validation only for MVP)
   const validatedRooms = validateRooms(spec, deckFootprints);
