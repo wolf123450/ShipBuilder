@@ -11,6 +11,7 @@ export function useRaycasting(
   camera: any,
   renderer: any,
   hullMesh: any,
+  secondaryHullMeshes: any,
   deckMeshes: any,
   roomMeshes: any,
   roomMeshMap: any,
@@ -38,10 +39,12 @@ export function useRaycasting(
     // Collect all possible objects in raycaster, respecting visibility
     const allObjects: THREE.Object3D[] = [];
     const hullMeshInstance = hullMesh();
+    const secondaryHullMeshesArray = secondaryHullMeshes();
     const deckMeshesArray = deckMeshes();
     const roomMeshesArray = roomMeshes();
 
     if (hullMeshInstance && showHull.value) allObjects.push(hullMeshInstance);
+    if (showHull.value) allObjects.push(...secondaryHullMeshesArray); // Phase 5.0c: Include secondary hulls
     if (showDecks.value) allObjects.push(...deckMeshesArray);
     if (showRooms.value) allObjects.push(...roomMeshesArray);
 
@@ -74,10 +77,19 @@ export function useRaycasting(
             mesh: hitObject,
           };
         }
-      } else if (hitObject === hullMeshInstance) {
-        // Hull was hit
+      } else if (secondaryHullMeshesArray.includes(hitObject)) {
+        // Secondary hull was hit (Phase 5.0c)
+        const hullId = hitObject.userData.hullId;
         return {
           type: 'hull',
+          id: hullId,
+          mesh: hitObject,
+        };
+      } else if (hitObject === hullMeshInstance) {
+        // Primary hull was hit
+        return {
+          type: 'hull',
+          id: 'primary',
           mesh: hitObject,
         };
       }

@@ -53,7 +53,8 @@ export function useInputHandlers(
         updateSelectionOutlines();
         return;
       } else if (hitResult.type === 'hull') {
-        shipStore.selectItem('hull');
+        // Phase 5.0c: Select hull by ID (primary or secondary)
+        shipStore.selectItem('hull', hitResult.id);
         focusOnSelected();
         updateSelectionOutlines();
         return;

@@ -9,6 +9,7 @@ import {
   DeckNamingScheme,
   HullGenerationAlgorithm,
   SectionShape,
+  BooleanOperation,
 } from "./index";
 
 /**
@@ -89,6 +90,20 @@ export const HullSpecSchema = z.object({
   // Post-MVP: Multi-hull support
   worldTransform: WorldTransformSchema.optional().describe("3D transformation for secondary hulls"),
   socketConstraint: z.string().optional().describe("Named location hint for placement"),
+});
+
+/**
+ * HullInstance schema - unified hull with metadata
+ * Phase 5.0c: New unified data model consolidating primary + secondary hulls
+ */
+export const HullInstanceSchema = z.object({
+  id: z.string().min(1).describe("Unique identifier for this hull instance"),
+  name: z.string().min(1).describe("Display name for this hull"),
+  isPrimary: z.boolean().describe("Whether this is the primary structural hull"),
+  hullSpec: HullSpecSchema.describe("The hull definition"),
+  worldTransform: WorldTransformSchema.describe("3D transformation (position, rotation, scale)"),
+  booleanOp: z.nativeEnum(BooleanOperation).describe("Boolean operation for combining with other hulls"),
+  enabled: z.boolean().describe("Whether to render and compile this hull"),
 });
 
 // ============================================================================
@@ -177,6 +192,7 @@ export const ShipSpecSchema = z.object({
 // ============================================================================
 
 export type HullSpecValidated = z.infer<typeof HullSpecSchema>;
+export type HullInstanceValidated = z.infer<typeof HullInstanceSchema>;
 export type DecksSpecValidated = z.infer<typeof DecksSpecSchema>;
 export type RoomSpecValidated = z.infer<typeof RoomSpecSchema>;
 export type WindowsSpecValidated = z.infer<typeof WindowsSpecSchema>;

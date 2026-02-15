@@ -20,18 +20,16 @@
     <!-- Tab content -->
     <div class="flex-1 overflow-y-auto">
       <div v-if="activeTab === 0" class="p-4">
-        <HullEditor />
+        <!-- Phase 5.0c: Unified hull editor for primary and secondary hulls -->
+        <HullInstanceEditor />
       </div>
       <div v-else-if="activeTab === 1" class="p-4">
-        <SecondaryHullEditor />
-      </div>
-      <div v-else-if="activeTab === 2" class="p-4">
         <DeckEditor />
       </div>
-      <div v-else-if="activeTab === 3" class="p-4">
+      <div v-else-if="activeTab === 2" class="p-4">
         <DeckPlacementEditor ref="deckPlacementEditorRef" />
       </div>
-      <div v-else-if="activeTab === 4" class="p-4">
+      <div v-else-if="activeTab === 3" class="p-4">
         <ExportEditor />
       </div>
     </div>
@@ -42,8 +40,7 @@
 import { ref, watch } from "vue";
 import { useShipStore } from "@stores/shipStore";
 import { useKeyboardShortcuts } from "./composables/useKeyboardShortcuts";
-import HullEditor from "./editors/HullEditor.vue";
-import SecondaryHullEditor from "./editors/SecondaryHullEditor.vue";
+import HullInstanceEditor from "./editors/HullInstanceEditor.vue";
 import DeckEditor from "./editors/DeckEditor.vue";
 import DeckPlacementEditor from "./editors/DeckPlacementEditor.vue";
 import ExportEditor from "./editors/ExportEditor.vue";
@@ -52,9 +49,9 @@ const shipStore = useShipStore();
 const activeTab = ref(0);
 const deckPlacementEditorRef = ref<any>(null);
 
+// Phase 5.0c: Unified tabs with single Hulls editor
 const tabs = [
-  { label: "1. Hull" },
-  { label: "1b. Secondary Hulls" },
+  { label: "1. Hulls" },
   { label: "2. Decks" },
   { label: "3. Rooms" },
   { label: "4. Export" },
@@ -76,7 +73,7 @@ const cycleTab = (direction: "next" | "prev") => {
  */
 const deleteSelectedRoom = () => {
   // If on Rooms tab, delegate to DeckPlacementEditor to show confirmation
-  if (activeTab.value === 3 && deckPlacementEditorRef.value?.deleteSelectedRoom) {
+  if (activeTab.value === 2 && deckPlacementEditorRef.value?.deleteSelectedRoom) {
     deckPlacementEditorRef.value.deleteSelectedRoom();
   } else if (shipStore.selection.itemType === "room" && shipStore.selection.itemIds[0]) {
     // For other tabs or direct deletion
@@ -100,17 +97,11 @@ watch(
   () => [shipStore.selection.itemType, shipStore.selection.itemIds],
   ([type, ids]) => {
     if (type === 'room') {
-      activeTab.value = 3; // Open Rooms tab
+      activeTab.value = 2; // Open Rooms tab
     } else if (type === 'deck') {
-      activeTab.value = 2; // Open Decks tab
+      activeTab.value = 1; // Open Decks tab
     } else if (type === 'hull' && ids && ids.length > 0) {
-      // Check if it's a secondary hull
-      const isSecondaryHull = shipStore.ship.secondaryHulls?.some(h => h.name === ids[0]);
-      if (isSecondaryHull) {
-        activeTab.value = 1; // Open Secondary Hulls tab
-      } else {
-        activeTab.value = 0; // Open Hull tab for primary
-      }
+      activeTab.value = 0; // Open Hulls tab for any hull (primary or secondary)
     }
   }
 );

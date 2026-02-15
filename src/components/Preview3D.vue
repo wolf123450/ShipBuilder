@@ -191,6 +191,7 @@ const raycasting = useRaycasting(
   sceneSetup.camera,
   sceneSetup.renderer,
   meshManagement.hullMesh,
+  meshManagement.secondaryHullMeshes,
   meshManagement.deckMeshes,
   meshManagement.roomMeshes,
   meshManagement.roomMeshMap,
@@ -201,6 +202,7 @@ const raycasting = useRaycasting(
 const selection = useSelection(
   sceneSetup.scene,
   meshManagement.hullMesh,
+  meshManagement.secondaryHullMeshes,
   meshManagement.deckMeshes,
   meshManagement.roomMeshes,
   meshManagement.createOutlineMesh
@@ -264,6 +266,17 @@ watch(
 
 watch(
   () => shipStore.shipSpec.ship.hull,
+  () => {
+    meshManagement.updateMesh();
+  },
+  { deep: true }
+);
+
+/**
+ * Watch for unified hulls array changes (Phase 5.0c)
+ */
+watch(
+  () => (shipStore.shipSpec.ship as any).hulls,
   () => {
     meshManagement.updateMesh();
   },

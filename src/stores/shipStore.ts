@@ -18,6 +18,9 @@ import {
   SelectionState,
   HierarchyUIState,
   HullSpec,
+  HullInstance,
+  BooleanOperation,
+  WorldTransform,
 } from "@core/index";
 import { compileShip } from "@compiler/index";
 
@@ -505,24 +508,169 @@ export const useShipStore = defineStore("ship", () => {
     return visibility.value.rooms && !visibility.value.hiddenRoomIds.includes(roomId);
   }
 
-  // SECONDARY HULL CRUD METHODS (Phase 5.0a)
+  // SECONDARY HULL CRUD METHODS (Phase 5.0a) - DEPRECATED
+  // These methods are kept for backwards compatibility but forward to new unified hull methods
 
   /**
-   * Add a new secondary hull
+   * Add a new secondary hull (deprecated - use addHull instead)
    */
   function addSecondaryHull(hull: HullSpec) {
-    if (!shipSpec.value.ship.secondaryHulls) {
-      shipSpec.value.ship.secondaryHulls = [];
+    // Forward to new unified method
+    const hullInstance: HullInstance = {
+      id: `secondary-${Date.now()}`,
+      name: hull.name || "Secondary Hull",
+      isPrimary: false,
+      hullSpec: hull,
+      worldTransform: hull.worldTransform || { position: { x: 0, y: 0, z: 0 }, rotation: { x: 0, y: 0, z: 0 }, scale: 1.0 },
+      booleanOp: BooleanOperation.Union,
+      enabled: true,
+    };
+    addHull(hullInstance);
+  }
+
+  /**
+   * Update an existing secondary hull (deprecated - use updateHull instead)
+   */
+  function updateSecondaryHull(hullId: string, updates: Partial<HullSpec>) {
+    const hull = getHullById(hullId);
+    if (hull) {
+      Object.assign(hull.hullSpec, updates);
+      if (updates.worldTransform) {
+        hull.worldTransform = updates.worldTransform;
+      }
+      recompileShip();
     }
-    shipSpec.value.ship.secondaryHulls.push(hull);
+  }
+
+  /**
+   * Delete a secondary hull (deprecated - use deleteHull instead)
+   */
+  function deleteSecondaryHull(hullId: string) {
+    deleteHull(hullId);
+  }
+
+  /**
+   * Duplicate a secondary hull with auto-offset position
+   */
+  function duplicateSecondaryHull(hullId: string) {
+    const original = getHullById(hullId);
+    if (!original) return;
+
+    const copy: HullInstance = JSON.parse(JSON.stringify(original));
+    copy.id = `${original.id}-copy-${Date.now()}`;
+    copy.name = `${original.name} (copy)`;
+    if (copy.worldTransform?.position) {
+      copy.worldTransform.position.x += 10; // Offset by 10 meters
+    }
+
+    addHull(copy);
+  }
+
+  // UNIFIED HULL METHODS (Phase 5.0c) - NEW ARCHITECTURE
+
+  /**
+   * Initialize hulls array from old format or ensure it exists
+   * Phase 5.0c: Migration from separate hull + secondaryHulls to unified hulls array
+   */
+  function migrateToUnifiedHulls() {
+    // Check if already migrated (hulls array exists)
+    if ((shipSpec.value.ship as any).hulls) {
+      return; // Already migrated
+    }
+
+    const hulls: HullInstance[] = [];
+
+    // Migrate primary hull
+    if (shipSpec.value.ship.hull) {
+      hulls.push({
+        id: "primary",
+        name: shipSpec.value.ship.hull.name || "Primary Hull",
+        isPrimary: true,
+        hullSpec: shipSpec.value.ship.hull,
+        worldTransform: shipSpec.value.ship.hull.worldTransform || { 
+          position: { x: 0, y: 0, z: 0 }, 
+          rotation: { x: 0, y: 0, z: 0 }, 
+          scale: 1.0 
+        },
+        booleanOp: BooleanOperation.Union,
+        enabled: true,
+      });
+    }
+
+    // Migrate secondary hulls
+    if (shipSpec.value.ship.secondaryHulls) {
+      shipSpec.value.ship.secondaryHulls.forEach((secondaryHull, index) => {
+        hulls.push({
+          id: `secondary-${index}`,
+          name: secondaryHull.name || `Secondary Hull ${index + 1}`,
+          isPrimary: false,
+          hullSpec: secondaryHull,
+          worldTransform: secondaryHull.worldTransform || {
+            position: { x: 0, y: 0, z: 0 },
+            rotation: { x: 0, y: 0, z: 0 },
+            scale: 1.0,
+          },
+          booleanOp: BooleanOperation.Union,
+          enabled: true,
+        });
+      });
+    }
+
+    // Set the new hulls array
+    (shipSpec.value.ship as any).hulls = hulls;
+
+    console.log(`✅ Migrated ${hulls.length} hulls to unified format`);
+  }
+
+  /**
+   * Get hull by ID
+   */
+  function getHullById(id: string): HullInstance | undefined {
+    const hulls = (shipSpec.value.ship as any).hulls as HullInstance[];
+    return hulls?.find((h) => h.id === id);
+  }
+
+  /**
+   * Get primary hull
+   */
+  function getPrimaryHull(): HullInstance | undefined {
+    const hulls = (shipSpec.value.ship as any).hulls as HullInstance[];
+    return hulls?.find((h) => h.isPrimary);
+  }
+
+  /**
+   * Get all secondary hulls
+   */
+  function getSecondaryHulls(): HullInstance[] {
+    const hulls = (shipSpec.value.ship as any).hulls as HullInstance[];
+    return hulls?.filter((h) => !h.isPrimary) || [];
+  }
+
+  /**
+   * Get all enabled hulls
+   */
+  function getEnabledHulls(): HullInstance[] {
+    const hulls = (shipSpec.value.ship as any).hulls as HullInstance[];
+    return hulls?.filter((h) => h.enabled) || [];
+  }
+
+  /**
+   * Add a new hull instance
+   */
+  function addHull(hull: HullInstance) {
+    const hulls = (shipSpec.value.ship as any).hulls as HullInstance[];
+    if (!hulls) {
+      (shipSpec.value.ship as any).hulls = [];
+    }
+    (shipSpec.value.ship as any).hulls.push(hull);
     recompileShip();
   }
 
   /**
-   * Update an existing secondary hull
+   * Update a hull instance
    */
-  function updateSecondaryHull(hullId: string, updates: Partial<HullSpec>) {
-    const hull = shipSpec.value.ship.secondaryHulls?.find((h) => h.name === hullId);
+  function updateHullInstance(id: string, updates: Partial<HullInstance>) {
+    const hull = getHullById(id);
     if (hull) {
       Object.assign(hull, updates);
       recompileShip();
@@ -530,30 +678,15 @@ export const useShipStore = defineStore("ship", () => {
   }
 
   /**
-   * Delete a secondary hull
+   * Delete a hull instance
    */
-  function deleteSecondaryHull(hullId: string) {
-    const index = shipSpec.value.ship.secondaryHulls?.findIndex((h) => h.name === hullId);
+  function deleteHull(id: string) {
+    const hulls = (shipSpec.value.ship as any).hulls as HullInstance[];
+    const index = hulls?.findIndex((h) => h.id === id);
     if (index !== undefined && index >= 0) {
-      shipSpec.value.ship.secondaryHulls?.splice(index, 1);
+      hulls.splice(index, 1);
       recompileShip();
     }
-  }
-
-  /**
-   * Duplicate a secondary hull with auto-offset position
-   */
-  function duplicateSecondaryHull(hullId: string) {
-    const original = shipSpec.value.ship.secondaryHulls?.find((h) => h.name === hullId);
-    if (!original) return;
-
-    const copy = JSON.parse(JSON.stringify(original));
-    copy.name = `${original.name} (copy)`;
-    if (copy.worldTransform?.position) {
-      copy.worldTransform.position.x += 10; // Offset by 10 meters
-    }
-
-    addSecondaryHull(copy);
   }
 
   /**
@@ -562,6 +695,9 @@ export const useShipStore = defineStore("ship", () => {
   function markClean() {
     lastSavedState.value = JSON.stringify(shipSpec.value);
   }
+
+  // Perform migration to unified hull format if needed
+  migrateToUnifiedHulls();
 
   // Perform initial compilation
   recompileShip();
@@ -623,5 +759,15 @@ export const useShipStore = defineStore("ship", () => {
     updateSecondaryHull,
     deleteSecondaryHull,
     duplicateSecondaryHull,
+
+    // Unified hull methods (Phase 5.0c)
+    migrateToUnifiedHulls,
+    getHullById,
+    getPrimaryHull,
+    getSecondaryHulls,
+    getEnabledHulls,
+    addHull,
+    updateHullInstance,
+    deleteHull,
   };
 });

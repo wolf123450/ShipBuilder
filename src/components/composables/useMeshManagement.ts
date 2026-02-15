@@ -19,6 +19,7 @@ export function useMeshManagement(
   let hullMesh: THREE.Mesh | null = null;
   let hullOutline: THREE.LineSegments | null = null;
   let hullCenter: THREE.Vector3 | null = null;
+  let secondaryHullMeshes: THREE.Mesh[] = []; // Phase 5.0c: Unified hulls
   let deckMeshes: THREE.Mesh[] = [];
   let deckOutlines: THREE.LineSegments[] = [];
   let deckCenters: THREE.Vector3[] = [];
@@ -34,6 +35,54 @@ export function useMeshManagement(
    */
   function createHullVolumeFromSpec(spec: any) {
     return createHullVolume(spec.ship.hull);
+  }
+
+  /**
+   * Helper: Generate mesh geometry from a hull spec (Phase 5.0c)
+   * Returns THREE.BufferGeometry for the given hull specification
+   */
+  function generateHullGeometry(hullSpec: any): THREE.BufferGeometry {
+    const algorithm = hullSpec.generationAlgorithm;
+    const isParametric = algorithm === 'parametric_surface' || !algorithm; // default is parametric
+    
+    let geometry: THREE.BufferGeometry;
+    
+    if (isParametric) {
+      // Use direct parametric mesh generation for smooth surfaces
+      const parametricMesh = generateParametricMesh(
+        hullSpec.spine.points,
+        hullSpec.length,
+        hullSpec.maxBeam,
+        hullSpec.maxHeight,
+        hullSpec.topBias ?? 1.0,
+        (hullSpec.sectionShape as any) ?? 'ellipse',
+        hullSpec.shapeParams,
+        hullSpec.spineSampleRate ?? 50,
+        64 // Cross-section samples for smooth curves
+      );
+      
+      // Convert to THREE.BufferGeometry
+      geometry = new THREE.BufferGeometry();
+      const positions = parametricMesh.vertices.flatMap(v => [v.x, v.y, v.z]);
+      const normals = parametricMesh.normals.flatMap(n => [n.x, n.y, n.z]);
+      const indices = parametricMesh.indices;
+      
+      geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(positions), 3));
+      geometry.setAttribute('normal', new THREE.BufferAttribute(new Float32Array(normals), 3));
+      geometry.setIndex(new THREE.BufferAttribute(new Uint32Array(indices), 1));
+    } else {
+      // Use voxel + marching cubes for fast preview
+      const resolution = meshResolution.value;
+      const bakedHull = bakeHullMesh({
+        hullVolume: createHullVolume(hullSpec),
+        hullSpec: hullSpec,
+        resolution: resolution,
+        maxResolution: 120,
+      });
+      geometry = bakedHull.geometry;
+    }
+    
+    return geometry;
   }
 
   /**
@@ -102,6 +151,14 @@ export function useMeshManagement(
     });
     deckMeshes = [];
 
+    // Clear secondary hull meshes (Phase 5.0c)
+    secondaryHullMeshes.forEach((mesh) => {
+      sceneInstance.remove(mesh);
+      mesh.geometry.dispose();
+      (mesh.material as THREE.Material).dispose();
+    });
+    secondaryHullMeshes = [];
+
     roomMeshes.forEach((mesh) => {
       sceneInstance.remove(mesh);
       mesh.geometry.dispose();
@@ -114,52 +171,8 @@ export function useMeshManagement(
     // Bake hull mesh
     if (showHull.value) {
       try {
-        console.log('Starting hull mesh generation...');
-        
-        const algorithm = shipStore.shipSpec.ship.hull.generationAlgorithm;
-        const isParametric = algorithm === 'parametric_surface' || !algorithm; // default is parametric
-        
-        let geometry: THREE.BufferGeometry;
-        
-        if (isParametric) {
-          // Use direct parametric mesh generation for smooth surfaces
-          console.log('✓ Generating parametric lofted mesh (smooth)');
-          const hull = shipStore.shipSpec.ship.hull;
-          const parametricMesh = generateParametricMesh(
-            hull.spine.points,
-            hull.length,
-            hull.maxBeam,
-            hull.maxHeight,
-            hull.topBias ?? 1.0,
-            (hull.sectionShape as any) ?? 'ellipse',
-            hull.shapeParams,
-            hull.spineSampleRate ?? 50,
-            64 // Cross-section samples for smooth curves
-          );
-          
-          // Convert to THREE.BufferGeometry
-          geometry = new THREE.BufferGeometry();
-          const positions = parametricMesh.vertices.flatMap(v => [v.x, v.y, v.z]);
-          const normals = parametricMesh.normals.flatMap(n => [n.x, n.y, n.z]);
-          const indices = parametricMesh.indices;
-          
-          geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(positions), 3));
-          geometry.setAttribute('normal', new THREE.BufferAttribute(new Float32Array(normals), 3));
-          geometry.setIndex(new THREE.BufferAttribute(new Uint32Array(indices), 1));
-        } else {
-          // Use voxel + marching cubes for fast preview
-          console.log('✓ Generating voxel mesh (fast preview)');
-          const resolution = meshResolution.value;
-          const bakedHull = bakeHullMesh({
-            hullVolume: createHullVolumeFromSpec(shipStore.shipSpec),
-            hullSpec: shipStore.shipSpec.ship.hull,
-            resolution: resolution,
-            maxResolution: 120,
-          });
-          geometry = bakedHull.geometry;
-        }
-
-        console.log('Hull mesh generated, geometry has ', geometry.getAttribute('position')?.count, ' vertices');
+        // Generate primary hull mesh
+        const geometry = generateHullGeometry(shipStore.shipSpec.ship.hull);
 
         const material = new THREE.MeshPhongMaterial({
           color: 0x3b82f6,
@@ -171,10 +184,36 @@ export function useMeshManagement(
         hullMesh = new THREE.Mesh(geometry, material);
         hullMesh.castShadow = true;
         hullMesh.receiveShadow = true;
+        hullMesh.userData.hullId = 'primary'; // Phase 5.0c: Track hull ID
+
+        // Apply world transform to primary hull if it exists in unified hulls array (Phase 5.0c)
+        const primaryHull = shipStore.getPrimaryHull();
+        if (primaryHull && primaryHull.worldTransform) {
+          if (primaryHull.worldTransform.position) {
+            hullMesh.position.set(
+              primaryHull.worldTransform.position.x ?? 0,
+              primaryHull.worldTransform.position.y ?? 0,
+              primaryHull.worldTransform.position.z ?? 0
+            );
+          }
+          if (primaryHull.worldTransform.rotation) {
+            hullMesh.rotation.order = 'XYZ';
+            hullMesh.rotation.x = ((primaryHull.worldTransform.rotation.x ?? 0) * Math.PI) / 180;
+            hullMesh.rotation.y = ((primaryHull.worldTransform.rotation.y ?? 0) * Math.PI) / 180;
+            hullMesh.rotation.z = ((primaryHull.worldTransform.rotation.z ?? 0) * Math.PI) / 180;
+          }
+          if (primaryHull.worldTransform.scale) {
+            hullMesh.scale.set(
+              primaryHull.worldTransform.scale,
+              primaryHull.worldTransform.scale,
+              primaryHull.worldTransform.scale
+            );
+          }
+        }
+
         sceneInstance.add(hullMesh);
 
         meshVertexCount.value = (geometry.getAttribute('position').array as Float32Array).length / 3;
-        console.log('Hull mesh added to scene, vertex count:', meshVertexCount.value);
 
         // Calculate and store hull center from geometry positions
         const posAttr = geometry.getAttribute('position');
@@ -195,6 +234,62 @@ export function useMeshManagement(
             hullCenter = bbox.getCenter(new THREE.Vector3());
           } else {
             hullCenter = null;
+          }
+        }
+
+        // Phase 5.0c: Generate secondary hull meshes from unified hulls array
+        const secondaryHulls = shipStore.getSecondaryHulls();
+        if (secondaryHulls && secondaryHulls.length > 0) {
+          for (const hullInstance of secondaryHulls) {
+            if (!hullInstance.enabled) {
+              continue; // Skip disabled hulls
+            }
+
+            try {
+              const secondaryGeo = generateHullGeometry(hullInstance.hullSpec);
+              
+              const secondaryMaterial = new THREE.MeshPhongMaterial({
+                color: 0xf97316, // Orange for secondary hulls
+                shininess: 100,
+                side: THREE.FrontSide,
+                flatShading: false,
+              });
+
+              const secondaryMesh = new THREE.Mesh(secondaryGeo, secondaryMaterial);
+              secondaryMesh.castShadow = true;
+              secondaryMesh.receiveShadow = true;
+              secondaryMesh.userData.hullId = hullInstance.id; // Track hull instance ID
+              
+              // Apply world transform (position, rotation, scale)
+              if (hullInstance.worldTransform) {
+                if (hullInstance.worldTransform.position) {
+                  secondaryMesh.position.set(
+                    hullInstance.worldTransform.position.x ?? 0,
+                    hullInstance.worldTransform.position.y ?? 0,
+                    hullInstance.worldTransform.position.z ?? 0
+                  );
+                }
+                if (hullInstance.worldTransform.rotation) {
+                  // Convert degrees to radians for each axis
+                  secondaryMesh.rotation.order = 'XYZ';
+                  secondaryMesh.rotation.x = ((hullInstance.worldTransform.rotation.x ?? 0) * Math.PI) / 180;
+                  secondaryMesh.rotation.y = ((hullInstance.worldTransform.rotation.y ?? 0) * Math.PI) / 180;
+                  secondaryMesh.rotation.z = ((hullInstance.worldTransform.rotation.z ?? 0) * Math.PI) / 180;
+                }
+                if (hullInstance.worldTransform.scale) {
+                  secondaryMesh.scale.set(
+                    hullInstance.worldTransform.scale,
+                    hullInstance.worldTransform.scale,
+                    hullInstance.worldTransform.scale
+                  );
+                }
+              }
+              
+              sceneInstance.add(secondaryMesh);
+              secondaryHullMeshes.push(secondaryMesh);
+            } catch (error) {
+              console.error(`Failed to generate mesh for secondary hull "${hullInstance.name}":`, error);
+            }
           }
         }
 
@@ -389,6 +484,7 @@ export function useMeshManagement(
   return {
     hullMesh: () => hullMesh,
     hullCenter: () => hullCenter,
+    secondaryHullMeshes: () => secondaryHullMeshes, // Phase 5.0c
     deckMeshes: () => deckMeshes,
     deckCenters: () => deckCenters,
     roomMeshes: () => roomMeshes,

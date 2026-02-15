@@ -61,6 +61,12 @@ export enum SectionShape {
   Box = "box",
 }
 
+export enum BooleanOperation {
+  Union = "union",
+  Difference = "difference",
+  Intersection = "intersection",
+}
+
 // ============================================================================
 // VECTOR & GEOMETRY
 // ============================================================================
@@ -124,6 +130,21 @@ export interface HullSpec {
   hasInteriorDecks?: boolean; // Default: true; false for engine pods, etc.
   worldTransform?: WorldTransform; // For secondary hulls positioning
   socketConstraint?: string; // Named location hint (e.g., "engine_pod_left")
+}
+
+/**
+ * Unified hull instance wrapping HullSpec with metadata
+ * Consolidates primary and secondary hulls into a single array
+ * Phase 5.0c: New unified data model
+ */
+export interface HullInstance {
+  id: string; // Unique identifier (e.g., "primary", "secondary-1", "secondary-2")
+  name: string; // Display name (e.g., "Primary Hull", "Engine Pod")
+  isPrimary: boolean; // Whether this is the primary (structural) hull
+  hullSpec: HullSpec; // The hull definition
+  worldTransform: WorldTransform; // Position, rotation, scale in world space
+  booleanOp: BooleanOperation; // How to combine with other hulls
+  enabled: boolean; // Whether to render and include in compilation
 }
 
 // ============================================================================

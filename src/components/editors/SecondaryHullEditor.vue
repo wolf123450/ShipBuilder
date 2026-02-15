@@ -223,7 +223,12 @@
       </div>
     </div>
     <div v-else class="editor-empty">
-      <p>Select a secondary hull to edit its properties</p>
+      <div class="empty-content">
+        <p>No secondary hulls created yet</p>
+        <button class="add-button" @click="handleAddSecondaryHull">
+          ➕ Add Secondary Hull
+        </button>
+      </div>
     </div>
   </div>
 </template>
@@ -293,6 +298,27 @@ function updateHull() {
 function setProfileMode(mode: 'primary' | 'custom') {
   profileMode.value = mode;
   // TODO: Store profile mode preference
+}
+
+function handleAddSecondaryHull() {
+  // Create a new secondary hull based on the primary hull
+  const primaryHull = store.ship.hull;
+  
+  // Generate a unique name
+  const existingCount = store.ship.secondaryHulls?.length ?? 0;
+  const newName = `Secondary Hull ${existingCount + 1}`;
+  
+  const newHull: HullSpec = {
+    ...primaryHull,
+    name: newName,
+    worldTransform: {
+      position: { x: 0, y: 0, z: 0 },
+      rotation: { x: 0, y: 0, z: 0 },
+      scale: 1.0,
+    },
+  };
+  
+  store.addSecondaryHull(newHull);
 }
 
 function handleDuplicate() {
@@ -393,6 +419,41 @@ function handleDelete() {
   height: 100%;
   color: var(--color-text-secondary);
   text-align: center;
+}
+
+.empty-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.empty-content > p {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--color-text-secondary);
+}
+
+.add-button {
+  padding: 0.75rem 1.5rem;
+  background-color: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
+}
+
+.add-button:hover {
+  background-color: #2563eb;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  transform: translateY(-2px);
+}
+
+.add-button:active {
+  transform: translateY(0);
 }
 
 .editor-content {

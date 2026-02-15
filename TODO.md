@@ -52,6 +52,141 @@ Ship Design Toolkit is a production-ready MVPshipdesign application with visual 
 
 ## 🚀 Post-MVP Roadmap (Current Focus)
 
+### Phase 5.0: Unified Multi-Hull System (CURRENT - BREAKING CHANGE)
+
+**Architecture Shift**: Consolidating primary + secondary hulls into single `ship.hulls[]` array.
+- Breaking change: Old designs with separate primary/secondary structure will migrate on load
+- Backwards compatibility: Not maintained (user choice)
+- Benefit: Single UI for all hull editing, support for boolean ops, extensible to multiple hull types
+
+**Current Progress**:
+- ✅ Phase 5.0a: Hierarchy + Selection system (Complete)
+- ✅ Phase 5.0c: Unified hull data model & rendering (Complete) - Feb 15, 2026
+- ⏳ Phase 5.0d: Boolean mesh operations
+- ⏳ Phase 5.0e: Hull type flexibility (cubic, conic, etc.)
+
+**Key UI Changes** (coming in 5.0c):
+- Merge "1. Hull" + "1b. Secondary Hulls" tabs → "1. Hulls" (single tab for all)
+- All hulls edited in unified HullInstanceEditor
+- Boolean operation selector with 3 visual icons: 🟢 Union | 🔴 Difference | 🟡 Intersection
+
+**Key Data Changes** (coming in 5.0c):
+```typescript
+// OLD: separate fields
+ship.hull: HullSpec                // Primary
+ship.secondaryHulls?: HullSpec[]   // Secondary
+
+// NEW: unified array
+ship.hulls: HullInstance[] = [
+  { id: "primary", isPrimary: true, hullSpec, worldTransform, booleanOp: "union" },
+  { id: "secondary-1", isPrimary: false, hullSpec, worldTransform, booleanOp: "union" },
+  { id: "secondary-2", isPrimary: false, hullSpec, worldTransform, booleanOp: "union" },
+]
+```
+
+---
+
+#### Phase 5.0c: Unified Hull Data Model & Basic Rendering
+
+**Goal**: Get all hulls rendering from single `ship.hulls[]` array. No boolean ops yet.
+
+**Implementation Checkpoint 1: Update Types** ✅
+- [x] Add `HullInstance` interface with fields: `id`, `name`, `isPrimary`, `hullSpec`, `worldTransform`, `booleanOp`, `enabled`
+- [x] Add `HullInstanceSchema` with Zod validation
+- [x] Add `hulls: HullInstance[]` to `ShipState`
+- [x] File: `src/types/index.ts`, `src/types/schema.ts`
+- **Verify**: No TypeScript errors, proper schema validation ✅
+
+**Implementation Checkpoint 2: Migration & Store Methods** ✅
+- [x] Add `migrateToUnifiedHulls()` called on store init
+- [x] Migrate `ship.hull` → `ship.hulls[0]` (isPrimary: true, booleanOp: "union")
+- [x] Migrate `ship.secondaryHulls[]` → `ship.hulls[1+]` (isPrimary: false)
+- [x] Replace `addSecondaryHull()`, `updateSecondaryHull()`, `deleteSecondaryHull()` with generic versions
+- [x] Add helpers: `getHullById(id)`, `getPrimaryHull()`, `getSecondaryHulls()`
+- [x] File: `src/stores/shipStore.ts`
+- **Verify**: Console logs show migration working, old methods forward to new ones ✅
+
+**Implementation Checkpoint 3: Mesh Generation** ✅
+- [x] Update `useMeshManagement.ts` to iterate `ship.hulls[]`
+- [x] Generate mesh for each hull with `enabled === true`
+- [x] Apply `worldTransform` to each mesh (position, rotation, scale)
+- [x] For now: Just overlay all meshes (no boolean ops yet, ignore `booleanOp` field)
+- [x] Keep deck generation using primary hull only
+- [x] File: `src/components/composables/useMeshManagement.ts`
+- **Verify**: Secondary hulls now render in 3D at correct positions/rotations ✅
+
+**Implementation Checkpoint 4: Unify Editor Component** ✅
+- [x] Rename `SecondaryHullEditor.vue` → `HullInstanceEditor.vue`
+- [x] Update to work with `HullInstance` (not just `HullSpec`)
+- [x] Add Boolean Op selector with 3 buttons showing icons + text:
+  - `🟢 Union` – add this hull
+  - `🔴 Difference` – subtract this hull
+  - `🟡 Intersection` – keep only overlap
+- [x] Add hull list selector at top of editor showing all hulls
+- [x] Make all sections collapsible (metadata, spec, transform, booleanOp, actions)
+- [x] Restore hull parameter editing (length, beam, height, bias, interior decks)
+- [x] (UI only; no effect until Phase 5.0d)
+- [x] File: `src/components/editors/HullInstanceEditor.vue`
+- **Verify**: Hull selector, collapsible sections, parameter editing all functional ✅
+
+**Implementation Checkpoint 5: Simplify Tabs** ✅
+- [x] Remove "Tab 1b. Secondary Hulls" from StepEditor
+- [x] Rename "Tab 1. Hull" → "Tab 1. Hulls"
+- [x] Load HullInstanceEditor for any selected hull
+- [x] File: `src/components/StepEditor.vue`
+- **Verify**: Tab switching works, selecting secondary hull opens HullInstanceEditor ✅
+
+**Testing Checklist** (Ready for user testing):
+- [ ] Load existing ship → migration runs, hulls render in 3D
+- [ ] Select secondary hull in hierarchy → HullInstanceEditor opens
+- [ ] Edit position → mesh updates in real-time
+- [ ] Edit hull parameters (length, beam, height) → mesh updates in real-time
+- [ ] Edit name/rotation/scale → updates reflected immediately
+- [ ] Add new hull → renders with unique name
+- [ ] Delete hull → removed from hierarchy and 3D view
+- [ ] Boolean op buttons visible and clickable (no action yet)
+- [ ] Hull selector lists all hulls with proper icons and enabled toggles
+- [ ] Collapsible sections expand/collapse properly
+- [ ] No console errors
+
+**Estimated Effort**: 6-8 hours
+
+---
+
+#### Phase 5.0d: Boolean Mesh Operations
+
+**Goal**: Actually combine meshes using union/difference/intersection.
+
+**Implementation**:
+- Use mesh boolean library (Three.js CSG or similar)
+- Process hulls in order, combining by `booleanOp`
+- Real-time update as user changes operations
+
+**Estimated Effort**: 4-6 hours
+
+---
+
+#### Phase 5.0e: Hull Type Flexibility
+
+**Goal**: Support cubic, conic, and other hull shapes beyond parametric.
+
+**Implementation**:
+- Add `type: 'parametric' | 'cubic' | 'conic'` to HullInstance
+- Implement generators for each type
+- UI selector for hull type
+
+**Estimated Effort**: 8-10 hours
+
+---
+
+#### Phase 5.0b: Visual Spline Editor (Deferred)
+
+Visual hull profile editor. Will implement after 5.0c-e complete.
+
+---
+
+**OLD CONTENT (for reference, being replaced)**:
+
 ### Phase 5.0: Essential Hull Features (NEXT - Critical for Interesting Ships)
 
 #### Phase 5.0a: Secondary Hull UI Editor & Management + Object Hierarchy Panel
