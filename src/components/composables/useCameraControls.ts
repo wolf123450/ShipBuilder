@@ -127,7 +127,7 @@ export function useCameraControls(camera: any, scene: any, animationDuration: an
    * Reset view to default
    */
   function resetView() {
-    if (shipStore.selectedItemType) {
+    if (shipStore.selection.itemType) {
       focusOnSelected();
     } else {
       setPresetView('top');
@@ -141,24 +141,26 @@ export function useCameraControls(camera: any, scene: any, animationDuration: an
     const distance = 30;
     let center = { x: 0, y: 0, z: 0 };
 
+    const selectedObject = shipStore.getSelectedObject;
+
     // Determine which object is selected and get its center
-    if (shipStore.selectedItemType === 'room' && roomData) {
+    if (selectedObject?.type === 'room' && roomData) {
       // For rooms, use provided data
       center = {
         x: roomData.position.x,
         y: (roomData.deck_y_min + roomData.deck_y_max) / 2 || 0,
         z: roomData.position.z,
       };
-    } else if (shipStore.selectedItemType === 'hull' && hullCenter) {
+    } else if (selectedObject?.type === 'hull' && hullCenter) {
       // For hull, use calculated center
       center = {
         x: hullCenter.x,
         y: hullCenter.y,
         z: hullCenter.z,
       };
-    } else if (shipStore.selectedItemType === 'deck' && shipStore.selectedItemId) {
+    } else if (selectedObject?.type === 'deck') {
       // For decks, use calculated center
-      const deckIndex = parseInt(shipStore.selectedItemId);
+      const deckIndex = parseInt(selectedObject.id);
       if (deckCenters[deckIndex]) {
         const deckCenter = deckCenters[deckIndex];
         center = {

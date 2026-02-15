@@ -50,9 +50,39 @@
 
     <!-- Main content area -->
     <div class="flex-1 flex overflow-hidden">
-      <!-- Sidebar editor -->
-      <aside class="w-96 bg-ship-navy border-r border-ship-slate overflow-y-auto flex flex-col">
-        <StepEditor />
+      <!-- Sidebar editor with tabs -->
+      <aside class="w-96 bg-ship-navy border-r border-ship-slate overflow-hidden flex flex-col">
+        <!-- Tab selector -->
+        <div class="flex border-b border-ship-slate bg-ship-dark">
+          <button
+            @click="activeTab = 'editor'"
+            :class="[
+              'flex-1 px-4 py-2 text-sm font-medium border-b-2 transition-colors',
+              activeTab === 'editor'
+                ? 'border-blue-500 text-blue-400'
+                : 'border-transparent text-gray-400 hover:text-gray-300'
+            ]"
+          >
+            Editor
+          </button>
+          <button
+            @click="activeTab = 'hierarchy'"
+            :class="[
+              'flex-1 px-4 py-2 text-sm font-medium border-b-2 transition-colors',
+              activeTab === 'hierarchy'
+                ? 'border-blue-500 text-blue-400'
+                : 'border-transparent text-gray-400 hover:text-gray-300'
+            ]"
+          >
+            Hierarchy
+          </button>
+        </div>
+
+        <!-- Tab content -->
+        <div class="flex-1 overflow-y-auto">
+          <StepEditor v-if="activeTab === 'editor'" />
+          <HierarchyViewer v-else-if="activeTab === 'hierarchy'" />
+        </div>
       </aside>
 
       <!-- 3D preview canvas -->
@@ -73,10 +103,12 @@ import { useKeyboardShortcuts } from "@components/composables/useKeyboardShortcu
 import { saveShipToLibrary } from "@utils/storage";
 import StepEditor from "@components/StepEditor.vue";
 import Preview3D from "@components/Preview3D.vue";
+import HierarchyViewer from "@components/HierarchyViewer.vue";
 import KeyboardShortcutsHelp from "@components/KeyboardShortcutsHelp.vue";
 
 const shipStore = useShipStore();
 const saveStatus = ref<"idle" | "saving" | "saved">("idle");
+const activeTab = ref<"editor" | "hierarchy">("editor");
 const helpDialogRef = ref<any>(null);
 
 /**

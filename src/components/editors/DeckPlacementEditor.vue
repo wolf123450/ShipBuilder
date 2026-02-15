@@ -1208,17 +1208,18 @@ onMounted(() => {
    * Watch for store selection changes to sync with local state
    */
   watch(
-    () => [shipStore.selectedItemType, shipStore.selectedItemId],
-    ([type, id]) => {
-      if (type === 'room') {
-        selectedRoomId.value = id;
+    () => [shipStore.selection.itemType, shipStore.selection.itemIds],
+    ([type, ids]) => {
+      if (type === 'room' && Array.isArray(ids) && ids[0]) {
+        selectedRoomId.value = ids[0];
         drawCanvas();
       } else if (type !== 'room' && selectedRoomId.value) {
         // Clear local selection if another type is selected
         selectedRoomId.value = null;
         drawCanvas();
       }
-    }
+    },
+    { deep: true }
   );
 
   onUnmounted(() => {

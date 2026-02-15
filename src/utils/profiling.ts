@@ -141,6 +141,12 @@ export function getHullSpecHash(hullSpec: any): string {
     maxBeam: hullSpec.maxBeam,
     maxHeight: hullSpec.maxHeight,
     spine: hullSpec.spine,
+    generationAlgorithm: hullSpec.generationAlgorithm,
+    voxelResolution: hullSpec.voxelResolution,
+    spineSampleRate: hullSpec.spineSampleRate,
+    sectionShape: hullSpec.sectionShape,
+    shapeParams: hullSpec.shapeParams,
+    topBias: hullSpec.topBias,
   };
   return hashObject(relevantSpec);
 }

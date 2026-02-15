@@ -58,16 +58,21 @@ export function createCatmullRomSpline(values: number[]): (t: number) => number 
     // Clamp t to [0, 1]
     t = Math.max(0, Math.min(1, t));
 
-    // Scale t to local segment parameter
+    // Special cases for exact boundaries
+    if (t === 0) return values[0];
+    if (t === 1) return values[values.length - 1];
+
+    // Scale t to segment parameter
     const segmentCount = values.length - 1;
     const scaledT = t * segmentCount;
     const segmentIndex = Math.floor(scaledT);
     const localT = scaledT - segmentIndex;
 
-    // Clamp segment index
+    // Get segment (clamp to valid range)
     const i = Math.min(segmentIndex, segmentCount - 1);
 
-    // Get control points (with boundary conditions)
+    // Get control points with proper boundary handling
+    // For Catmull-Rom, we need 4 points. At boundaries, replicate edge points
     const p0 = i === 0 ? values[0] : values[i - 1];
     const p1 = values[i];
     const p2 = values[i + 1];
@@ -202,14 +207,19 @@ export function generateParametricMesh(
         point = evaluateSuperellipse(theta, rx, ry, 2, 2);
       }
 
+      // evaluateSuperellipse returns {x, z} but we use it for X-Y cross-section
       const x = point.x;
-      const z = point.z;
+      const y = point.z;  // This is the Y coordinate of the cross-section
 
-      vertices.push({ x, y: 0, z: zWorld });
+      vertices.push({ x, y, z: zWorld });
       uvs.push({ u, v });
 
-      // Normals computed later (or approximate now)
-      normals.push({ x: point.x / rx, y: 0, z: point.z / ry });
+      // Normals: perpendicular to radial direction in X-Y plane
+      normals.push({ 
+        x: point.x / Math.max(1, rx), 
+        y: point.z / Math.max(1, ry), 
+        z: 0  // Normal should point radially outward from spine, not along Z
+      });
       vertexIndex++;
     }
   }
@@ -226,6 +236,34 @@ export function generateParametricMesh(
       indices.push(v0, v1, v2);
       indices.push(v1, v3, v2);
     }
+  }
+
+  // Add end caps (close both ends)
+  // Bow cap (z- end, first cross-section)
+  const bowCenterIdx = vertexIndex;
+  vertices.push({ x: 0, y: 0, z: -length / 2 });
+  normals.push({ x: 0, y: 0, z: -1 }); // Points backward (negative Z)
+  uvs.push({ u: 0.5, v: 0 });
+  vertexIndex++;
+
+  for (let j = 0; j < crossCount; j++) {
+    const v0 = 0 * crossCount + j;
+    const v1 = 0 * crossCount + ((j + 1) % crossCount);
+    indices.push(bowCenterIdx, v1, v0);
+  }
+
+  // Stern cap (z+ end, last cross-section)
+  const sternCenterIdx = vertexIndex;
+  vertices.push({ x: 0, y: 0, z: length / 2 });
+  normals.push({ x: 0, y: 0, z: 1 }); // Points forward (positive Z)
+  uvs.push({ u: 0.5, v: 1 });
+  vertexIndex++;
+
+  const lastRowStart = (spineCount - 1) * crossCount;
+  for (let j = 0; j < crossCount; j++) {
+    const v0 = lastRowStart + j;
+    const v1 = lastRowStart + ((j + 1) % crossCount);
+    indices.push(sternCenterIdx, v0, v1);
   }
 
   // Normalize normals

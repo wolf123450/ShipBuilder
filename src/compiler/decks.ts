@@ -56,7 +56,7 @@ export function compileDeckFootprints(params: DeckCompilationParams): DeckFootpr
     startY,
     endY,
     hullVolume,
-    footprintMargin = 0.5,
+    footprintMargin = 0.1,
     resolution = 0.5,
   } = params;
 
@@ -68,10 +68,9 @@ export function compileDeckFootprints(params: DeckCompilationParams): DeckFootpr
   for (let i = 0; i < deckCount; i++) {
     const yMin = startY + i * deckHeight;
     const yMax = yMin + deckHeight;
-    const yMid = (yMin + yMax) / 2;
 
     // Get hull slice at deck midpoint
-    let polygon = hullVolume.sliceY(yMid, resolution);
+    let polygon = hullVolume.sliceY(yMin, resolution);
 
     // Apply inward margin
     if (footprintMargin > 0) {

@@ -144,6 +144,8 @@ export class ParametricSurfaceHull extends BaseHull {
     // Get radius at this Z using Catmull-Rom spline
     let radiusNorm = this.radiusSpline(zClamped);
     if (isNaN(radiusNorm)) radiusNorm = 0.5; // Fallback
+    // Clamp radius to [0, 1] - Catmull-Rom can overshoot which causes spurious geometry
+    radiusNorm = Math.max(0, Math.min(1, radiusNorm));
 
     // Calculate ellipsoid radii
     const rx = radiusNorm * (maxBeam / 2);
@@ -158,8 +160,21 @@ export class ParametricSurfaceHull extends BaseHull {
 
     const sectionShape = (this.spec.sectionShape ?? SectionShape.Ellipse) as SectionShape;
     const shapeParams = this.spec.shapeParams;
-    const n = shapeParams?.n ?? 2;
-    const m = shapeParams?.m ?? 2;
+    
+    // Determine n and m based on section shape
+    let n = 2;
+    let m = 2;
+    
+    if (sectionShape === SectionShape.Ellipse) {
+      n = 2;
+      m = 2;
+    } else if (sectionShape === SectionShape.Superellipse) {
+      n = shapeParams?.n ?? 2;
+      m = shapeParams?.m ?? 2;
+    } else if (sectionShape === SectionShape.Box) {
+      n = 8;
+      m = 8;
+    }
 
     // Get point on the section boundary
     const boundaryPoint = evaluateSuperellipse(theta, rx, ry, n, m);
@@ -203,6 +218,13 @@ export class ParametricSurfaceHull extends BaseHull {
     for (let i = 0; i <= maxSamples; i++) {
       const z = (-length / 2) + (i / maxSamples) * length;
 
+      // Check if this Z location is actually inside the hull
+      // by testing at X=0, Y=y
+      if (!this.contains({ x: 0, y, z })) {
+        // Skip points outside the hull entirely
+        continue;
+      }
+
       // Binary search for X boundary at this Z
       let xMin = 0;
       let xMax = maxBeam / 2;
@@ -217,7 +239,19 @@ export class ParametricSurfaceHull extends BaseHull {
       }
 
       const xBoundary = xMin;
-      polygon.push({ x: xBoundary, z });
+      // Only add if X boundary is significant (> 0.01m)
+      if (xBoundary > 0.01) {
+        polygon.push({ x: xBoundary, z });
+      }
+    }
+
+    // Filter out degenerate polygons (too small or too few points)
+    if (polygon.length < 4) {
+      return []; // Skip degenerate slices
+    }
+    const avgX = polygon.reduce((sum, p) => sum + p.x, 0) / polygon.length;
+    if (avgX < 0.05) {
+      return []; // Skip very small cross-sections at endpoints
     }
 
     // Add symmetry
@@ -335,6 +369,11 @@ export class VoxelMarchingCubesHull extends BaseHull {
     for (let i = 0; i <= maxSamples; i++) {
       const z = (-length / 2) + (i / maxSamples) * length;
 
+      // Check if this Z location is actually inside the hull
+      if (!this.contains({ x: 0, y, z })) {
+        continue;
+      }
+
       // Binary search for X boundary at this Z
       let xMin = 0;
       let xMax = maxBeam / 2;
@@ -349,7 +388,19 @@ export class VoxelMarchingCubesHull extends BaseHull {
       }
 
       const xBoundary = xMin;
-      polygon.push({ x: xBoundary, z });
+      // Only add if X boundary is significant (> 0.01m)
+      if (xBoundary > 0.01) {
+        polygon.push({ x: xBoundary, z });
+      }
+    }
+
+    // Filter out degenerate polygons (too small or too few points)
+    if (polygon.length < 4) {
+      return []; // Skip degenerate slices
+    }
+    const avgX = polygon.reduce((sum, p) => sum + p.x, 0) / polygon.length;
+    if (avgX < 0.05) {
+      return []; // Skip very small cross-sections at endpoints
     }
 
     // Add starboard side (mirror)

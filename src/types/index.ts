@@ -101,6 +101,7 @@ export interface HullSpinePoint {
 }
 
 export interface HullSpec {
+  name?: string; // Optional name for this hull (used for secondary hulls)
   type: HullType;
   symmetry: HullSymmetry;
   length: number; // Meters
@@ -247,6 +248,54 @@ export interface ExportOptions {
   format: "glb" | "gltf" | "json";
   includeCollisionMesh?: boolean;
   draco?: boolean;
+}
+
+// ============================================================================
+// HIERARCHY & SELECTION (Phase 5.0a)
+// ============================================================================
+
+/**
+ * Single node in the object hierarchy tree
+ * Used for displaying ship structure in a collapsible tree view
+ */
+export interface HierarchyTreeNode {
+  id: string; // Unique identifier
+  name: string; // Display name
+  type: "ship" | "hull" | "secondary-hull" | "decks" | "deck" | "rooms" | "room";
+  icon: string; // Emoji icon for display
+  count?: number; // For heading nodes (e.g., "Decks (4)")
+  itemType?: "hull" | "deck" | "room"; // For selection routing
+  itemId?: string; // For selection routing (e.g., deck index, room ID)
+  children?: HierarchyTreeNode[];
+  nodePath?: string; // For tracking expanded state in UI
+}
+
+/**
+ * Selection state supporting single, group, and multi-select
+ * Replaces the old selectedItemType/selectedItemId model
+ */
+export interface SelectionState {
+  mode: "single" | "group" | "multi"; // Selection mode
+  itemType:
+    | "hull"
+    | "deck"
+    | "room"
+    | "all-hulls"
+    | "all-decks"
+    | "all-rooms"
+    | null; // What is selected
+  itemIds: string[]; // Selected item IDs (empty array for 'all-*' types)
+}
+
+/**
+ * Hierarchy UI state (not persisted)
+ * Tracks expanded nodes, search filter, and context menu state
+ */
+export interface HierarchyUIState {
+  expandedNodes: Record<string, boolean>; // Track which nodes are expanded
+  searchFilter: string; // Search text for filtering hierarchy
+  contextMenuTarget: { type: string; itemId: string } | null; // Right-click target
+  contextMenuPos: { x: number; y: number }; // Right-click position
 }
 
 // ============================================================================

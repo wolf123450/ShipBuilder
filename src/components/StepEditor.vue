@@ -73,9 +73,9 @@ const deleteSelectedRoom = () => {
   // If on Rooms tab, delegate to DeckPlacementEditor to show confirmation
   if (activeTab.value === 2 && deckPlacementEditorRef.value?.deleteSelectedRoom) {
     deckPlacementEditorRef.value.deleteSelectedRoom();
-  } else if (shipStore.selectedItemType === "room" && shipStore.selectedItemId) {
+  } else if (shipStore.selection.itemType === "room" && shipStore.selection.itemIds[0]) {
     // For other tabs or direct deletion
-    shipStore.deleteRoom(shipStore.selectedItemId);
+    shipStore.deleteRoom(shipStore.selection.itemIds[0]);
     shipStore.clearSelection();
   }
 };
@@ -92,7 +92,7 @@ useKeyboardShortcuts({
  * Watch for selection changes to auto-open relevant tabs
  */
 watch(
-  () => [shipStore.selectedItemType, shipStore.selectedItemId],
+  () => [shipStore.selection.itemType, shipStore.selection.itemIds],
   ([type, id]) => {
     if (type === 'room') {
       activeTab.value = 2; // Open Rooms tab

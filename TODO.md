@@ -1,545 +1,593 @@
-# Ship Design Toolkit - MVP Development Roadmap
+# Ship Design Toolkit - Development Roadmap
 
 ## Overview
 
-Ship Design Toolkit MVP aims to deliver a production-ready spaceship design application with a visual 3D feedback loop. The project is structured in phases, each building on previous work.
+Ship Design Toolkit is a production-ready MVPshipdesign application with visual 3D feedback loop. This document tracks MVP completion and post-MVP roadmap.
 
 ---
 
-## 📊 Implementation Status (as of Feb 6, 2026)
+## 📊 Implementation Status (as of Feb 15, 2026)
 
-| Phase | Focus | Status | Tests | Notes |
-|-------|-------|--------|-------|-------|
-| **Phase 1** | Core MVP (mesh, preview, workflow) | ✅ COMPLETE | 22/22 passing | Visual feedback loop implemented |
-| **Phase 2** | 2D Room Placement (editor & collision) | ✅ COMPLETE | 22/22 passing | Full drag-drop, SAT collision detection, CRUD |
-| **Phase 3** | Export & Import (formats & library) | ✅ COMPLETE | 22/22 passing | JSON/YAML/GLB export + localStorage library |
-| **Phase 4** | Polish & Optimization | ✅ COMPLETE | 99/99 passing | All priorities 1-5 done. MVP READY |
+### MVP Phases (COMPLETE ✅)
 
-**MVP Readiness**: ✅ **100% COMPLETE**. All features implemented. Performance optimized. Ready for production release.
+| Phase | Focus | Status | Notes |
+|-------|-------|--------|-------|
+| **Phase 1** | Core MVP (mesh, preview, workflow) | ✅ COMPLETE | Dual algorithms (parametric + voxel), all geometry working |
+| **Phase 2** | 2D Room Placement (editor & collision) | ✅ COMPLETE | Full drag-drop, SAT collision detection, CRUD |
+| **Phase 3** | Export & Import (formats & library) | ✅ COMPLETE | JSON/YAML/GLB export + localStorage library |
+| **Phase 4** | Polish & Optimization | ✅ COMPLETE | Keyboard shortcuts, tooltips, performance optimized |
 
----
+### Phase 1 Enhanced Enhancements (CURRENT - Feb 2026)
 
-## Phase 1: Core MVP (Visual Feedback Loop) - ✅ COMPLETE
+| Feature | Status | Tests | Evidence |
+|---------|--------|-------|----------|
+| **Dual Hull Algorithms** | ✅ DONE | Phase1.1 | Catmull-Rom parametric (smooth) + voxel (fast) |
+| **Superellipse Sections** | ✅ DONE | Phase1.2 | Ellipse/box/superellipse shape support |
+| **Multi-Hull Support** | ✅ DONE | Phase1.3 | Multiple independent hulls with transforms |
+| **Deck Sizing** | ✅ DONE | Phase1.4 | Fixed deck-to-hull alignment (`yMin` slicing) |
+| **Integration Tests** | ✅ DONE | Phase1.integration | Full pipeline validation (212 tests) |
 
-### 1.1: Mesh Baker Module ✅ COMPLETE
-- [x] Implement voxel-based hull mesh generation
-- [x] Surface extraction (face-based approach)
-- [x] Deck polygon extrusion to 3D
-- [x] Room box generation
-- [x] Configurable mesh resolution (0.5-5m, capped at 60³)
-- [x] Unit tests (5 tests, all passing)
-- **Status**: Complete and tested
-- **Commits**: d2bc6c2
-
-### 1.2: Preview3D Rewrite ✅ COMPLETE
-- [x] Three.js scene with camera setup
-- [x] Hull mesh rendering with Phong material
-- [x] Deck footprints as semi-transparent overlays
-- [x] Room visualization with type-based color coding
-- [x] Interactive mesh resolution slider
-- [x] Visibility toggles (hull/decks/rooms)
-- [x] Orbit camera with animation
-- [x] Stats overlay (vertex/deck/room counts)
-- [x] Proper resource cleanup
-- **Status**: Complete and rendering
-- **Commits**: d2bc6c2
-
-### 1.3: Tab-Based Workflow UI ✅ COMPLETE
-- [x] Create StepEditor container (4 tabs)
-- [x] Step 1: Hull Editor with presets and profile editor
-- [x] Step 2: Deck Editor with deck summary
-- [x] Step 3: Room Editor with add/delete functionality
-- [x] Step 4: Export Editor with save/export UI
-- [x] Integrate all steps into ShipDesignerApp
-- [x] All components linked to Pinia store
-- [x] No TypeScript errors
-- **Status**: Complete and integrated
-- **Commits**: 49c9ff2
-- **Browser Testing**: Ready
-
-**Phase 1 Summary**: 
-- ✅ All 3 components delivered
-- ✅ 22 unit tests passing
-- ✅ Zero TypeScript errors
-- ✅ Zero console errors (verified in browser)
-- ✅ Real-time 3D feedback working
-- ✅ Tab-based workflow fully functional
-
-**Phase 2 Summary** (2D Room Placement):
-- ✅ All 4 subsections complete (2.1-2.4: footprint, drag, collision, context menu)
-- ✅ New Tab 3 "Rooms" replaces old RoomEditor (merged with 2D placement)
-- ✅ Canvas backing store coordinate system fixed for accurate hit detection
-- ✅ Full CRUD room management (add/edit/duplicate/delete/drag)
-- ✅ Canvas panning support for easy navigation
-- ✅ All existing tests still passing (22/22)
-- ✅ Ready for Phase 3 (Export/Import)
-
-**Phase 3 Summary** (Export/Import):
-- ✅ JSON export (portable format)
-- ✅ YAML export (version control friendly)
-- ✅ GLB/GLTF export (game engine ready)
-- ✅ File import with validation and error display
-- ✅ localStorage project library with full CRUD
-- ✅ All tests passing (22/22)
-- 🚧 Ready for Phase 4 (Polish & Optimization)
+**MVP Readiness**: ✅ **PRODUCTION READY**. All core features implemented, enhanced Phase 1 complete.
 
 ---
 
-## Phase 2: 2D Room Placement (Interactive Layout Editor) - ✅ COMPLETE
+## MVP Summary (Phases 1-4) ✅ COMPLETE
 
-### 2.1: Deck Footprint 2D View ✅ COMPLETE
-- [x] Render deck polygon in 2D orthographic view
-- [x] Pan/zoom controls (mouse wheel to zoom, drag to pan)
-- [x] Coordinate system display (X/Z axes with origin markers)
-- [x] Grid overlay (optional, toggleable)
-- [x] Room placement guide overlay (footprint bounds with clear visualization)
-- [x] Update DeckFootprint type with bounds and area calculations
-- [x] Integrated into StepEditor as Tab 3 (Rooms - merged with old RoomEditor)
-- **Status**: Complete and tested
+**Completed Features**:
+- ✅ Phase 1: Dual hull algorithms (parametric Catmull-Rom + voxel fallback), mesh baker, 3D preview, tab-based workflow
+- ✅ Phase 2: 2D room placement with drag-drop, SAT collision detection, full CRUD operations
+- ✅ Phase 3: Export/Import (JSON/YAML/GLB), localStorage project library
+- ✅ Phase 4: Keyboard shortcuts, confirmation dialogs, tooltips, performance optimization (7000x speedup with caching)
 
-### 2.2: Room Drag-and-Drop ✅ COMPLETE
-- [x] Click to select room (highlight with thicker border)
-- [x] Drag to move room on deck (real-time position updates)
-- [x] World coordinate display during mouse movement
-- [x] Highlight selected room in 2D view with white border
-- [x] Accurate hit detection using canvas backing store scaling
-- **Status**: Complete and fully functional
+**Test Coverage**: 212 tests passing (72 compiler + 140 components/integration)
+**Status**: Production-ready, all core features implemented
 
-### 2.3: Collision Detection & Feedback ✅ COMPLETE
-- [x] Detect overlapping rooms using SAT (Separating Axis Theorem)
-- [x] Highlight overlapping rooms in red with ✕ indicator
-- [x] Detect rooms outside deck footprint with point-in-polygon test
-- [x] Highlight out-of-bounds rooms in orange with ! indicator
-- [x] Show valid placement zones (deck footprint with semi-transparent fill)
-- [x] Real-time 3D updates as user drags (Preview3D synced)
-- [x] Visual feedback for conflicts (color-coded, icons)
-- **Status**: Complete with SAT algorithm and polygon containment
-
-### 2.4: Room Context Menu ✅ COMPLETE
-- [x] Delete room (delete button in room list)
-- [x] Duplicate room (copy button, auto-generates unique ID, offset position)
-- [x] Edit room properties (modal popup with full property editor)
-- [x] Copy position/dimensions (edit form shows all properties)
-- [x] Canvas panning (click empty space, drag to pan viewport, mouseup to stop)
-- **Status**: Complete with full CRUD operations
-
-**Phase 2 Summary:**
-- ✅ All 4 subsections delivered (2.1-2.4)
-- ✅ 22 unit tests passing (no new test failures)
-- ✅ Zero TypeScript errors
-- ✅ Real-time 2D visual editing with collision feedback
-- ✅ Merged RoomEditor and DeckPlacementEditor into single "Rooms" tab
-- ✅ Full interactive room management (add/edit/duplicate/delete/drag)
-- ✅ Canvas panning for easy navigation
-- ✅ Ready for Phase 3 (Export/Import)
+**Key Files**:
+- Core compiler: `src/compiler/{hull.ts, decks.ts, mesh.ts, index.ts}` with parametric surface utils
+- UI components: `src/components/{Preview3D.vue, StepEditor.vue, editors/*.vue, composables/*.ts}`
+- State: `src/stores/shipStore.ts` (Pinia)
+- Utils: `src/utils/{parametricSurfaceUtils.ts, export.ts, storage.ts, meshCache.ts, profiling.ts}`
 
 ---
 
-## Phase 3: Export & Import - ✅ COMPLETE
+## 🚀 Post-MVP Roadmap (Current Focus)
 
-### 3.1: File Export ✅ COMPLETE
-- [x] GLB/GLTF mesh export (for game engines)
-- [x] JSON ship spec export (portable, tested)
-- [x] YAML ship spec export (version control friendly, tested)
-- [x] Download file UI wired to export functions
-- **Status**: Complete - All formats working
+### Phase 5.0: Essential Hull Features (NEXT - Critical for Interesting Ships)
 
-### 3.2: File Import ✅ COMPLETE
-- [x] Import JSON/YAML from file dialog (triggerFileInput with file picker)
-- [x] Validate imported spec against schema (auto-parsing with fallback)
-- [x] Display import errors clearly (importError ref in UI)
-- [x] Merge imported spec into current design (shipStore.loadShip)
-- **Status**: Complete - Import modal with error display
+#### Phase 5.0a: Secondary Hull UI Editor & Management + Object Hierarchy Panel
+- [ ] **Object Hierarchy Tree Panel**
+  - [ ] New panel/sidebar showing ship structure tree:
+    ```
+    📦 Ship: "Enterprise-D"
+    ├── ⚓ Primary Hull (saucer)
+    │   └── 📋 Decks (4)
+    │       ├── Deck 1
+    │       ├── Deck 2
+    │       ├── Deck 3
+    │       └── Deck 4
+    ├── 🛰️ Secondary Hulls (2)
+    │   ├── Engine Pod (Port)
+    │   │   └── 📋 Decks (2)
+    │   │       ├── Deck E1
+    │   │       └── Deck E2
+    │   └── Engine Pod (Starboard)
+    │       └── 📋 Decks (2)
+    │           ├── Deck E1
+    │           └── Deck E2
+    └── 🚪 Rooms (12) [searchable/expandable]
+    ```
+  - [ ] Collapsible/expandable nodes (click to expand/collapse categories)
+  - [ ] Visual icons for each object type (⚓ hull, 🛰️ secondary, 📋 deck, 🚪 room, 📦 ship)
+  - [ ] Context-sensitive expansion (e.g., show "Decks (4)" as collapsed count, expand on click)
 
-### 3.3: Local Library ✅ COMPLETE
-- [x] Save projects to browser localStorage (saveShipToLibrary)
-- [x] Load saved projects with timestamps (loadLibrary with formatted dates)
-- [x] Delete saved projects (deleteFromLibrary with confirmation)
-- [x] Display library in Step 4 (Local Saves section in ExportEditor)
-- **Status**: Complete - Full CRUD library management
+- [ ] **Enhanced Selection System**
+  - [ ] Extend existing `selectItem()` store to support:
+    - Single object selection (existing: `selectItem('room', id)`)
+    - Group selection (`selectItem('all-hulls')`, `selectItem('all-decks')`, `selectItem('all-rooms')`)
+    - Multi-selection support (hold Ctrl/Cmd to add to selection, Shift for range)
+  - [ ] Selection state in store:
+    ```typescript
+    selectedItems: {
+      itemType: 'hull' | 'deck' | 'room' | 'all-hulls' | 'all-decks' | 'all-rooms',
+      itemIds: string[] // for multi-select
+    }
+    ```
+  - [ ] Update store methods:
+    - `selectItem(type, id, multiSelect?: boolean)` — single or add to selection
+    - `selectMultiple(type, ids)` — select multiple items
+    - `selectAllOfType(type)` — select all hulls/decks/rooms
+    - `clearSelection()` — deselect everything
+    - `toggleSelection(type, id)` — toggle individual item
 
-**Phase 3 Summary:**
-- ✅ JSON export implemented and tested
-- ✅ YAML export implemented (js-yaml library)
-- ✅ GLB/GLTF export implemented (Three.js GLTFExporter)
-- ✅ File import with error handling complete
-- ✅ localStorage library with persistence working
-- ✅ All 22 unit tests passing (no regressions)
-- ✅ Import error display in UI
-- ✅ Delete project confirmation dialog added
-- ✅ Ready for Phase 4 (Polish)
+- [ ] **Visual Highlighting Updates**
+  - [ ] 3D Preview highlighting:
+    - [ ] Single selection: current yellow glow
+    - [ ] All-hulls selected: highlight all hull meshes with lighter blue wash
+    - [ ] All-decks selected: highlight all deck polygons
+    - [ ] All-rooms selected: highlight all room volumes
+    - [ ] Multi-selection: glow each selected item with distinct color/outline
+  - [ ] 2D Deck view highlighting:
+    - [ ] Multi-room selection: draw outlines in group color
+    - [ ] All-rooms selection: semi-transparent group highlight
+  - [ ] Hierarchy panel:
+    - [ ] Selected items show checkmark or highlight background
+    - [ ] Group selections show partial checkbox (some children selected)
 
----
+- [ ] **Secondary Hull Editor Component**
+  - [ ] Panel that appears when secondary hull is selected (or inline in hierarchy)
+  - [ ] Controls:
+    - [ ] Hull name/description
+    - [ ] Position (X, Y, Z world coordinates with sliders)
+    - [ ] Rotation (pitch, yaw, roll in degrees)
+    - [ ] Scale factor (0.1x to 2.0x)
+    - [ ] Profile mode: "Use Primary Profile" vs "Custom Profile"
+    - [ ] Visibility toggle (eye icon)
+  - [ ] Quick actions:
+    - [ ] Duplicate hull (copy current + auto-offset position)
+    - [ ] Mirror hull (reflect across X/Y/Z plane)
+    - [ ] Delete hull
+    - [ ] Reset to default position (0, 0, 0)
 
-## Phase 4: Polish & Optimization - 🚧 IN PROGRESS
+- [ ] **Integration with Existing Selection**
+  - [ ] Clicking on hierarchy items updates store selection
+  - [ ] Clicking on 3D hull/deck/room updates hierarchy highlighting
+  - [ ] Deck editor integration: show which deck is selected in hierarchy
+  - [ ] Room editor integration: show which room is selected in hierarchy
+  - [ ] Copy selection state between 3D view and hierarchy panel
 
-### Priority 1: Keyboard Shortcuts ⌨️ ✅ COMPLETE
-- [x] **Ctrl+S** — Save current project to localStorage
-- [x] **Delete** — Delete selected room
-- [x] **Escape** — Clear selection
-- [x] **Tab** — Cycle through deck tabs (1-4)
-- [x] **Implementation**: Create `useKeyboardShortcuts.ts` composable
-- [x] **File**: `src/components/composables/useKeyboardShortcuts.ts`
-- [x] **Integration points**: `StepEditor.vue`, `Preview3D.vue`, `ShipDesignerApp.vue`
-- [x] **Store updates**: Proper dirty tracking with `isDirty` and `markClean()`
-- **Time spent**: ~2 hours
-- **Status**: Tested and working (22/22 tests still passing)
+- [ ] **Keyboard & Mouse Interactions**
+  - [ ] Click item: select (focus)
+  - [ ] Ctrl/Cmd+Click: add to selection
+  - [ ] Shift+Click: range select (if applicable)
+  - [ ] Right-click: context menu (duplicate, delete, rename, etc.)
+  - [ ] Double-click: expand/collapse node or open properties panel
+  - [ ] Drag to reorder? (future: reorder secondary hulls, decks)
 
-### Priority 2: Confirmation Dialogs & Error Handling 🛡️ ✅ COMPLETE
-- [x] Add delete confirmation for rooms (show modal before deleting)
-- [x] Create reusable `ConfirmDialog.vue` component
-  - [x] Props: title, message, confirmText, cancelText, isDangerous (red button)
-  - [x] Emits: @confirm, @cancel
-  - [x] Styles: Dark theme consistent with app
-  - [x] Uses teleport for proper modal overlay
-- [x] Add delete confirmation for room in `DeckPlacementEditor.vue`
-  - [x] Shows confirmation dialog before deletion
-  - [x] User-friendly message with warning
-  - [x] Red "Delete" button for dangerous action
-- [x] Add confirmation for "Delete Project" from library in `ExportEditor.vue`
-  - [x] Shows project name in confirmation
-  - [x] Prevents accidental deletions
-- [x] Improve error messages (validation, import errors)
-  - [x] Show user-friendly messages with emoji indicators
-  - [x] Different messages for JSON/YAML/Spec validation errors
-  - [x] Helpful hints about file format
-- **Implementation**: Modal dialogs for destructive actions
-- **Components created**:
-  - `src/components/ConfirmDialog.vue` — Reusable confirmation dialog
-- **Components updated**:
-  - `DeckPlacementEditor.vue` - delete room confirmation
-  - `ExportEditor.vue` - delete project confirmation + better error messages
-- **Time spent**: ~1.5 hours
-- **Status**: Complete (22/22 tests still passing)
+- [ ] **Search/Filter in Hierarchy**
+  - [ ] Text input to filter objects by name
+  - [ ] Only show matching items + parents
+  - [ ] Useful for large ships with 50+ rooms
 
-### Priority 2.5: Keyboard Shortcuts Cheat Sheet 📋 ✅ COMPLETE
-- [x] Create `KeyboardShortcutsHelp.vue` modal component
-  - [x] Show all available shortcuts with descriptions
-  - [x] Organized by category (Editing, Navigation, File, Help)
-  - [x] Include keyboard text and visual icons
-  - [x] Copy-to-clipboard via manual copy (users can select/copy)
-- [x] Add "?" Help button to header
-  - [x] Opens cheat sheet modal on click
-  - [x] Accessible via keyboard (press "?" to toggle)
-- [x] Keyboard shortcut listener integrated in component
-  - [x] "?" toggles dialog on/off
-  - [x] "Esc" closes dialog
-- **Implementation**: Modal component + help UI button + ShortcutRow subcomponent
-- **Files created**:
-  - `src/components/KeyboardShortcutsHelp.vue` — Main help dialog
-  - `src/components/ShortcutRow.vue` — Reusable shortcut row component
-- **Components updated**:
-  - `ShipDesignerApp.vue` - Added Help button to header, keyboard shortcut listener, integrated modal
-- **Shortcuts documented**: Ctrl+S (Save), Delete (Delete room), Esc (Clear), Tab/Shift+Tab (Navigate), ? (Help)
-- **Time spent**: ~45 minutes
-- **Status**: Complete (22/22 tests still passing)
+  **Files to create/modify**:
+  - `src/components/HierarchyPanel.vue` — Main tree hierarchy component
+  - `src/components/HierarchyNode.vue` — Recursive tree node component
+  - `src/components/editors/SecondaryHullEditor.vue` — Secondary hull property editor
+  - `src/stores/shipStore.ts` — Enhanced selection state & methods
+  - `src/components/Preview3D.vue` — Multi-selection highlighting in 3D
+  - `src/components/editors/DeckPlacementEditor.vue` — Hierarchy integration in 2D
+  
+  **Store changes** (examples):
+  ```typescript
+  // New state
+  selection: {
+    itemType: 'room' | 'deck' | 'hull' | 'all-hulls' | 'all-decks' | 'all-rooms' | null;
+    itemIds: string[] | null; // for multi-select
+  }
 
+  // New methods
+  selectItem(type, id, multiSelect = false)
+  selectAllOfType(type)
+  clearSelection()
+  toggleSelection(type, id)
+  selectMultiple(type, ids)
+  isSelected(type, id): boolean
+  ```
+  
+  **Testing**: 20+ component tests for selection, hierarchy expansion, multi-select, highlighting
 
-### Priority 3: Component Integration Tests 🧪 ✅ COMPLETE
-- [x] Test hull editor (change parameters, presets)
-- [x] Test deck editor (add/edit decks)
-- [x] Test room placement (add/delete/drag)
-- [x] Test export/import roundtrip
-- [x] Test keyboard shortcuts (indirectly via component interaction)
-- **Implementation**: Vitest + @vue/test-utils
-- **Files created**:
-  - `src/components/editors/HullEditor.test.ts` — 16 tests
-  - `src/components/editors/DeckEditor.test.ts` — 14 tests
-  - `src/components/editors/ExportEditor.test.ts` — 18 tests
-  - `src/components/editors/DeckPlacementEditor.test.ts` — 24 tests
-- **Test Coverage**: 72 new component integration tests
-  - Parameter input and updates
-  - Preset application
-  - Store synchronization
-  - Confirmation dialogs
-  - Error handling
-  - User interactions
-  - Data format validation
-- **Total Tests**: 94 passing (22 compiler + 72 component)
-- **Time spent**: ~2 hours
-- **Status**: Complete (94/94 tests passing)
+#### Phase 5.0b: Visual Spline Editor (Drag to Edit Hull Profile)
+- [ ] **2D Spline Control Point Inspector**
+  - [ ] Display spine.points as draggable nodes in 2D canvas
+  - [ ] X-axis = position along ship (normalized Z, -1 to +1)
+  - [ ] Y-axis = hull radius at that point
+  - [ ] Drag control points to reshape hull in real-time
+  - [ ] Visual feedback: show resulting hull cross-section live
+  - [ ] Add/remove control points (click to add, right-click to remove)
+  - [ ] Symmetric editing (double-click to toggle interpolation curve)
+  - **Canvas features**:
+    - [ ] Zoom/pan for precise editing
+    - [ ] Grid overlay (optional)
+    - [ ] Reference guides (width, height labels)
+    - [ ] Snap to grid option
+    - [ ] Undo support for spline dragging
+  - [ ] Numeric fallback (still support entering numbers directly)
+  - [ ] Export spline shape (save favorite profiles/presets)
+  - [ ] Import spline shape (load from saved library)
+  - [ ] Constraint system: min/max radius limits per point
+  - **Files to create**: `src/components/SplineEditor.vue`, `src/utils/splineEditing.ts`
+  - **Files to modify**: `HullEditor.vue` (integrate SplineEditor tab)
+  - **Testing**: 15+ tests for spline manipulation, validation, constraints
 
-### Priority 4: Tooltips & UX Polish ✨ ✅ COMPLETE
-- [x] Add tooltips to all hull parameters
-- [x] Add tooltips to deck controls
-- [x] Add tooltips to room editor
-- [x] Add tooltips to export buttons
-- [x] Create reusable `Tooltip.vue` component with smart boundary detection
-- **Implementation**: Custom Tooltip.vue with Teleport, fixed positioning, viewport boundary detection
-- **Features**: 
-  - Teleports to body to escape stacking context
-  - Smart repositioning (above/below/left/right) based on viewport boundaries
-  - Very high z-index (z-[9999]) to appear above 3D preview
-  - Mouse-based visibility with arrow pointer
-  - Context-sensitive help for all parameters and buttons
-- **Files created**:
-  - `src/components/Tooltip.vue` — Smart boundary-detecting tooltip component
-- **Components updated**:
-  - HullEditor.vue - 5 tooltips for hull dimensions and profile
-  - DeckEditor.vue - 3 tooltips for deck configuration
-  - ExportEditor.vue - 5 tooltips for project metadata and export options
-  - DeckPlacementEditor.vue - 8 tooltips for room properties and controls
-- **Time spent**: ~1.5 hours
-- **Status**: Complete (94/94 tests passing)
-
-### Priority 5: Performance Optimization 🚀 ✅ COMPLETE
-- [x] Profile mesh generation with DevTools
-  - Voxel sampling: 3.3% of total time
-  - Marching cubes: 86.7% of total time
-- [x] Implement mesh caching for unchanged specs
-  - Cache hit: 0.03ms (vs 210ms miss)
-  - 7000x speedup for cached requests
-  - LRU eviction with memory tracking
-- [x] Optimize voxel grid sampling
-  - Standard full-resolution maintained for quality
-  - Performance profiling integrated
-- [x] Lazy-load Three.js components
-  - Preloading in background during app startup
-  - lazyLoading.ts utility for deferred imports
-- [x] Performance benchmarks with Vitest
-  - 5 comprehensive performance tests
-  - Cache effectiveness measurement
-  - Profiler output collection
-- **Implementation**: profiling.ts, meshCache.ts, lazyLoading.ts, performance.test.ts
-- **Time spent**: ~1.5 hours
-- **Status**: Complete (99/99 tests passing)
-
-### Testing (Priority 3) Details
-- **Files to create**:
-  - `src/components/editors/HullEditor.test.ts`
-  - `src/components/editors/DeckEditor.test.ts`
-  - `src/components/editors/DeckPlacementEditor.test.ts`
-  - `src/components/editors/ExportEditor.test.ts`
-- **Coverage goal**: All user interactions tested
-- **Framework**: Vitest + @vue/test-utils
-
-**Phase 4 Success Criteria**:
-- ✅ Keyboard shortcuts working (Ctrl+S, Delete, etc.)
-- ✅ Confirmation dialogs prevent accidental deletions
-- ✅ Error messages are user-friendly
-- ✅ Component tests provide confidence (72 integration tests)
-- ✅ Performance optimized with mesh caching
-- ✅ No console warnings during normal use
-- ✅ Sub-300ms frame time achievable (mesh generation optimized)
-
-**Phase 4 Summary**:
-- ✅ All 5 priorities completed (keyboard shortcuts, confirmations, help, component tests, performance)
-- ✅ 99 total tests passing (94 original + 5 performance benchmarks)
-- ✅ MVP is 100% complete and ready for release
-- ✅ Performance optimizations provide 7000x speedup for cached meshes
-
----
-
-## Success Criteria for MVP
-
-### Functional Requirements
-- [x] Users can design hull shape with adjustable parameters
-- [x] Users can add multiple decks with custom heights
-- [x] Users can add rooms to decks
-- [x] 3D preview updates in real-time
-- [x] Users can export designs (JSON/YAML)
-- [x] Users can save designs locally
-- [x] Users can import previously saved designs
-- [x] Users can place rooms on deck footprints visually
-- [x] Users can export designs as GLB for game engines
-
-### Non-Functional Requirements
-- [x] Deterministic mesh generation (same input = same output)
-- [x] No external mesh libraries (custom implementation)
-- [x] Responsive UI (runs smoothly on modern browsers)
-- [x] Strict TypeScript mode
-- [x] Unit tests for core compiler
-- [x] No console errors in browser
-- [ ] Sub-300ms frame time on modern hardware
-- [ ] <100ms compile time for typical ships
-
-### UX Requirements
-- [x] Clear step-by-step workflow
-- [x] Real-time visual feedback
-- [x] Preset options for quick setup
-- [ ] Tooltips for all parameters
-- [ ] Visual feedback for validation errors
-
----
-
-## Timeline & Effort Estimate (REVISED)
-
-| Phase | Component | Est. Time | Status | Actual |
-|-------|-----------|-----------|--------|--------|
-| 1.1 | Mesh Baker | 1 hour | ✅ | ~1h |
-| 1.2 | Preview3D | 2 hours | ✅ | ~2h |
-| 1.3 | Step Editor | 2 hours | ✅ | ~2.5h |
-| 2.1-2.4 | 2D Room Placement | 2.5 hours | ✅ | ~3h |
-| 3 | Export/Import | 1.5 hours | ✅ | ~1.5h |
-| 4 | Polish | 1 hour | ⏳ | — |
-| **Total** | | **10 hours** | **85% done** | **10h done** |
-
----
-
-## Testing Strategy
-
-- [x] Unit tests for hull compiler (6 tests)
-- [x] Unit tests for deck compiler (6 tests)
-- [x] Unit tests for mesh baker (5 tests)
-- [x] All tests passing (22/22)
-- [ ] Component integration tests
-- [ ] Browser smoke tests
-- [ ] Performance profiling
-
-**Current Test Status**: 
-- ✅ 22 tests passing
-- ✅ Zero TypeScript errors
-- ✅ Zero console errors (verified in browser)
-- ✅ All UI components rendering correctly
-
----
-
-## Known Issues & Limitations
-
-1. **Mesh Generation**
-   - Simple voxel approach, not optimized marching cubes
-   - Can produce visible blocky artifacts on curved surfaces
-   - **Workaround**: Use mesh resolution slider for better quality
-   - Solution: Implement proper marching cubes in Phase 2
-
-2. **Room Placement Validation**
-   - Uses AABB overlap (basic, not perfect)
-   - Doesn't check polygon containment
-   - **Workaround**: 2D placement editor in Phase 2
-   - Solution: Implement polygon containment check
-
-3. **Deck Footprint Shrinking**
-   - Uses simple centroid-based approach
-   - Doesn't handle concave shapes well
-   - **Workaround**: Manual room positioning
-   - Solution: Implement robust polygon offset in Phase 2
-
-4. **Performance**
-   - No mesh caching (recalculates on every change)
-   - Can be slow with high-resolution grids
-   - **Workaround**: Use coarser resolution for real-time editing
-   - Solution: Implement GPU instancing in Phase 4
-
----
-
-## Code Quality Metrics
-
-- **TypeScript**: Strict mode enabled ✅
-- **Test Coverage**: ~35% (core compiler only)
-- **ESLint**: Clean (no warnings) ✅
-- **Prettier**: Auto-formatted ✅
-- **Compilation**: Zero errors ✅
-- **Browser Console**: Zero errors ✅
-
----
-
-## Architecture Notes
-
-### State Management Pattern
+**Implementation Architecture:**
 ```
-Store (shipSpec) → Compiler (pure) → Derived Data → UI (reactive)
-                                    ↓
-                            3D Mesh (cached)
+┌─────────────────────────────────────────────────────────────────┐
+│                     ShipDesignerApp                             │
+├─────────────────────────────────────────────────────────────────┤
+│  Header (Title + Buttons)                                       │
+├──────────────────────┬──────────────────────┬──────────────────┤
+│  HierarchyPanel      │  StepEditor (Tabs)   │  Preview3D       │
+│  (Left Sidebar)      │  (Center Editor)     │  (Right 3D View) │
+│                      │                      │                  │
+│  📦 Ship             │  ┌────────────────┐  │  [3D Canvas]     │
+│  ├─ ⚓ Primary Hull  │  │ Basic Controls │  │  (shows selected │
+│  │  └─ 📋 Decks(4)  │  ├─ Tab: Hull     │  │   items with     │
+│  ├─ 🛰️ Secondary(2) │  ├─ Tab: Decks    │  │   highlighting)  │
+│  │  ├─ Engine L     │  ├─ Tab: Rooms    │  │                  │
+│  │  └─ Engine R     │  ├─ Tab: Spline   │  │  Click hull/deck/│
+│  └─ 🚪 Rooms (12)   │  │  Editor         │  │  room → updates  │
+│     [Expand/Filter] │  ├─ Tab: Secondary│  │  hierarchy panel │
+│                      │  │  Hulls         │  │                  │
+│  [Search Box]        │  └────────────────┘  │                  │
+│                      │  Properties Panel    │                  │
+│                      │  (shows selected     │                  │
+│                      │   object details)    │                  │
+└──────────────────────┴──────────────────────┴──────────────────┘
+
+Selection Flow:
+  Click in Hierarchy → shipStore.selectItem() → Redux triggers update
+  → Preview3D highlights selected → 2D view updates → Details panel shows
+  ↓
+  Click in 3D view → shipStore.selectItem() → Hierarchy panel updates
+  ↓
+  Ctrl+Click → shipStore.selectMultiple() → Multi-highlight in 3D/2D
+  ↓
+  Select All Hulls button → shipStore.selectAllOfType('hull') → All hulls highlighted
 ```
 
-### Mesh Generation Pipeline
-```
-Hull Volume → Voxel Grid Sampling → Face Extraction → Mesh Geometry
-   (SDF)      (configurable res)      (simple)      (Three.js)
+**Enhanced Store Selection Model**:
+```typescript
+// OLD (simple single-select)
+selection: { itemType: 'room' | 'deck' | 'hull'; itemId: string | null }
+
+// NEW (supports single + group + multi-select)
+selection: {
+  mode: 'single' | 'group' | 'multi'; // selection mode
+  itemType: 'hull' | 'deck' | 'room' | 'all-hulls' | 'all-decks' | 'all-rooms';
+  itemIds: string[]; // empty for 'all-*' types
+}
+
+// Methods that handle all selection scenarios
+selectItem(type, id, multiSelect?)  // single or add to selection
+selectAllOfType(type)               // select all hulls/decks/rooms
+clearSelection()                    // deselect all
+toggleSelection(type, id)           // toggle individual item
+isSelected(type, id): boolean       // check if item selected
+getSelectedIds(): string[]          // get all selected item IDs
 ```
 
-### Component Hierarchy
+**Highlighting in 3D Preview**:
+```
+Selection           → 3D Highlight
+─────────────────────────────────
+Single hull         → Yellow wireframe glow
+Single deck         → Blue semi-transparent plane
+Single room         → Green semi-transparent box
+All hulls           → All hulls with light blue pulse
+All decks           → All deck outlines visible
+All rooms           → All room boxes visible
+Multi-select        → Each item with distinct outline color
+```
+
+**Component Hierarchy** (Updated):
 ```
 ShipDesignerApp
-├── Header (export button)
-├── StepEditor (tab container) ✅
-│   ├── HullEditor ✅
-│   ├── DeckEditor ✅
-│   ├── RoomEditor ✅
-│   └── ExportEditor ✅ (UI only)
-└── Preview3D (3D viewport) ✅
+├── Header (with help, export buttons)
+├── MainLayout (flex container)
+│   ├── HierarchyPanel (LEFT SIDEBAR)
+│   │   ├── HierarchyNode (recursive tree)
+│   │   │   ├── Icon + Name + [+/-]
+│   │   │   ├── Click → selectItem()
+│   │   │   ├── Ctrl+Click → selectMultiple()
+│   │   │   └── Right-click → context menu
+│   │   └── Search filter (filter items by name)
+│   ├── StepEditor (CENTER)
+│   │   ├── Tab: Hull Editor
+│   │   │   ├── Basic Controls
+│   │   │   ├── Tab: Spline Editor (NEW)
+│   │   │   └── Tab: Secondary Hulls (NEW)
+│   │   ├── Tab: Deck Editor
+│   │   ├── Tab: Room Editor / DeckPlacementEditor
+│   │   ├── Tab: Export Editor
+│   │   └── Properties Panel (shows selected item details)
+│   └── Preview3D (RIGHT)
+│       ├── 3D Canvas (scene rendering)
+│       ├── Camera controls
+│       └── Multi-selection highlighting
+
+Stores:
+  shipStore
+    selection: { mode, itemType, itemIds }
+    selectItem(), selectAllOfType(), clearSelection(),
+    toggleSelection(), isSelected(), getSelectedIds()
 ```
 
----
+**Benefits of These Integrated Features:**
+- **Hierarchy Panel + Multi-Selection**: Enables designer to quickly navigate complex ships with 50+ decks/rooms. "Select all decks" shows entire deck structure at once. Select individual room to inspect.
+- **Secondary Hulls**: Unlocks iconic multi-part ships (Enterprise saucer+nacelles, Star Destroyer wedge+engines, asymmetric fighter craft)
+- **Visual Spline Editor**: Makes hull design 10x faster and more intuitive than numeric input. Designers can sketch hull profiles interactively.
+- **Integrated Selection**: Consistent interaction model across all views: 3D → hierarchy, hierachy → 3D, 2D deck view → hierarchy all synced in real-time.
+- **Highlighting System**: Visual feedback for all selection modes helps designer understand complex multi-hull, multi-deck structures at a glance.
 
-## Completed Work Summary
-
-### Git Commits
-1. **d2bc6c2**: Phase 1.1 & 1.2 - Mesh baker and Preview3D rewrite
-2. **49c9ff2**: Phase 1.3 - Step editor integration
-
-### Files Created
-- `src/compiler/mesh.ts` (206 lines)
-- `src/compiler/mesh.test.ts` (95 lines)
-- `src/components/Preview3D.vue` (290 lines, rewritten)
-- `src/components/StepEditor.vue` (44 lines)
-- `src/components/editors/HullEditor.vue` (180 lines)
-- `src/components/editors/DeckEditor.vue` (130 lines)
-- `src/components/editors/RoomEditor.vue` (160 lines)
-- `src/components/editors/ExportEditor.vue` (231 lines)
-- `TODO.md` (this file)
-
-### Files Modified
-- `src/components/ShipDesignerApp.vue` (integrated StepEditor)
-- `tsconfig.json` (added @core alias)
-- `vite.config.ts` (added @core alias)
-- `vitest.config.ts` (added @core alias)
-- 8+ files (import updates for @core alias)
+**Estimated Effort**:
+- Phase 5.0a (Hierarchy + Selection): 12-15 hours (complex tree component + state management + 3 Views)
+- Phase 5.0b (Spline Editor): 8-10 hours (canvas math + drag interaction + undo support)
+- Total: ~20-25 hours for both essential features
 
 ---
 
-## Next Immediate Steps
+### Phase 5: Advanced Room Placement & Layout Generators
+- [ ] **5.1 Polygonal Room Shapes**
+  - [ ] Support rectangular, L-shaped, hexagonal, and custom polygon rooms
+  - [ ] Update room editor UI with shape selector
+  - [ ] Implement polygon collision detection for placement validation
+  - [ ] Extend SAT collision to handle arbitrary polygons
+  - **Files to create**: `src/utils/polygonShapes.ts`
+  - **Files to modify**: `src/compiler/decks.ts`, `DeckPlacementEditor.vue`
 
-### For Phase 3 (Export & Import) - NEXT PRIORITY
-1. Create `ExportEditor.vue` export UI (wire buttons)
-   - Implement JSON download
-   - Implement YAML download
-   - Implement GLB export via three.js
-   - Add localStorage save/load
+- [ ] **5.2 Multi-Deck Room Spans**
+  - [ ] Allow rooms to span multiple decks (e.g., vertical shafts, atriums)
+  - [ ] Add "deck span" property to room spec (startDeck, endDeck)
+  - [ ] Update 3D mesh generation to extrude rooms across deck heights
+  - [ ] Update 2D placement to show multi-deck influence
+  - **Files to modify**: `src/types/index.ts`, `src/compiler/mesh.ts`, `RoomEditor.vue`
 
-2. Add import dialog
-   - File picker UI
-   - Validate imported spec against schema
-   - Load into current design with error handling
+- [ ] **5.3 Frame-Aware Layout Generator**
+  - [ ] Define longitudinal frames (structural elements along Z)
+  - [ ] Snap room boundaries to frame positions
+  - [ ] Generate rooms aligned with frame grid
+  - [ ] Visualize frame overlays in 2D editor
+  - **Files to create**: `src/compiler/frames.ts`, `FrameEditor.vue`
 
-3. Add local library manager
-   - Save/load from localStorage
-   - Display list of saved projects with timestamps
-   - Delete saved projects
+- [ ] **5.4 Layout Generators (Auto-Fill)**
+  - [ ] Manual draw mode: Click-drag-release to place rooms
+  - [ ] Grid-based layout: Auto-create NxM rooms on deck
+  - [ ] Concentric shells: Radiate rooms outward from hull center
+  - [ ] Command/bridge tower: Pre-positioned layout for command sections
+  - **Files to create**: `src/utils/layoutGenerators.ts`
 
-### For Phase 4 (Polish) - FINAL
-1. Add keyboard shortcuts
-   - Ctrl+S to save
-   - Ctrl+Z/Ctrl+Y for undo/redo (optional)
-   - Delete key to remove selected room
-   - R key to rotate selected room
-2. Improve error messages with user-friendly text
-3. Add tooltips to all parameters
-4. Profile performance and optimize if needed
+### Phase 6: Structural Elements & Detailing
+- [ ] **6.1 Bulkheads (Transverse Walls)**
+  - [ ] Define bulkhead positions (percentage along hull length)
+  - [ ] Visualize in 3D as vertical planes
+  - [ ] Bulkhead editor with add/delete/position controls
+  - [ ] Export bulkhead data in mesh hierarchy
+  - **Files to create**: `src/compiler/bulkheads.ts`, `BulkheadEditor.vue`
+
+- [ ] **6.2 Longitudinal Frames (Internal Stiffening)**
+  - [ ] Define frame spacing and orientation
+  - [ ] Visualize frame girders in cross-section
+  - [ ] Calculate frame weight/materials
+  - [ ] Frame impact on room placement constraints
+  - **Files to create**: `src/compiler/frames.ts`
+
+- [ ] **6.3 Ribbing & Internal Structure**
+  - [ ] Rib pattern definition (spacing, height, thickness)
+  - [ ] 3D rib visualization on hull interior
+  - [ ] Parametric rib generation from hull shape
+  - **Files to create**: `src/utils/ribbing.ts`
+
+### Phase 7: Window & Feature Placement (Rule Engine)
+- [ ] **7.1 Window Placement Rules**
+  - [ ] Define rule presets (uniform grid, class-based, faction-specific)
+  - [ ] Rule parameters: spacing, size, offset from hull, section masks
+  - [ ] Apply rules by deck/section/room type
+  - [ ] Manual override system for custom placement
+  - **Files to create**: `src/compiler/windowPlacement.ts`, `WindowRuleEditor.vue`
+
+- [ ] **7.2 Hardpoint & Emitter Mounts**
+  - [ ] Hardpoint database (type, size, fire arcs)
+  - [ ] Mount placement rules (tip/mid/stern positioning)
+  - [ ] Conflict detection (overlapping arcs, hull intersection)
+  - [ ] Visual hardpoint indicators in 3D preview
+  - **Files to create**: `src/compiler/hardpoints.ts`, `HardpointEditor.vue`
+
+- [ ] **7.3 Viewport Windows & Observation Ports**
+  - [ ] Bridge viewport placement (forward, 360-degree, observation decks)
+  - [ ] Hangar bay door placement
+  - [ ] Sensor dome/turret placement rules
+  - **Files to modify**: `WindowRuleEditor.vue`
+
+### Phase 8: Advanced Mesh & Export Features
+- [ ] **8.1 Semantic Mesh Hierarchy**
+  - [ ] Export mesh with scene hierarchy (hull → decks → rooms → details)
+  - [ ] Material slots per component (hull material, deck, room interior)
+  - [ ] Metadata tags for game engine integration (hardpoints, doors, spawns)
+  - [ ] Extended GLB export with custom properties
+  - **Files to modify**: `src/utils/export.ts`, `src/compiler/mesh.ts`
+
+- [ ] **8.2 UV Mapping & Texturing Support**
+  - [ ] Auto-UV hull (triplanar projection)
+  - [ ] Per-room material assignment
+  - [ ] Texture coordinate metadata in export
+  - [ ] Livery layer support (color masks, decals)
+  - **Files to create**: `src/utils/uvMapping.ts`
+
+- [ ] **8.3 LOD (Level of Detail) Generation**
+  - [ ] Automatic LOD0, LOD1, LOD2 mesh variants
+  - [ ] Progressive mesh simplification
+  - [ ] LOD switching thresholds
+  - [ ] Export all LODs in single GLB file
+  - **Files to create**: `src/utils/lodGeneration.ts`
+
+- [ ] **8.4 Baked Lighting Prep**
+  - [ ] Mark light probe positions
+  - [ ] Generate ambient occlusion maps
+  - [ ] Export lightmap UVs
+  - [ ] Prepare for game engine static baking
+  - **Files to create**: `src/utils/lightingPrep.ts`
+
+### Phase 9: Material & Livery System
+- [ ] **9.1 Material Definition**
+  - [ ] Create material library (hull armor, deck plating, window materials)
+  - [ ] Material properties: color, metallic, roughness, emissive
+  - [ ] Material browser UI in editor
+  - [ ] Save/load material presets
+  - **Files to create**: `src/utils/materials.ts`, `MaterialEditor.vue`
+
+- [ ] **9.2 Livery & Faction Customization**
+  - [ ] Livery templates (Starfleet white, Klingon red, etc.)
+  - [ ] Decal/stripe placement system
+  - [ ] Color scheme generator
+  - [ ] Per-faction default liveries
+  - **Files to create**: `src/utils/liveries.ts`, `LiveryEditor.vue`
+
+- [ ] **9.3 Paintjob & Custom Texturing**
+  - [ ] Texture painting on hull surface (in 3D viewport)
+  - [ ] Texture export/import
+  - [ ] Multi-layer texture blending
+  - **Files to create**: `src/components/TexturePainter.vue`
+
+### Phase 10: Procedural Ship Templates & Presets
+- [ ] **10.1 Template System**
+  - [ ] Define ship type templates (corvette, frigate, destroyer, cruiser, capital)
+  - [ ] Template inheritance and composition
+  - [ ] Parameter constraints (hull length/beam/height ranges per class)
+  - [ ] Auto-scaling to class parameters
+  - **Files to create**: `src/compiler/templates.ts`
+
+- [ ] **10.2 Faction Presets**
+  - [ ] Federation, Klingon, Romulan, etc. design templates
+  - [ ] Aesthetic rules (hull shape preferences, default colors)
+  - [ ] Pre-positioned hardpoint patterns
+  - [ ] Livery defaults
+  - **Files to create**: `src/data/factions.ts`
+
+- [ ] **10.3 Procedural Generation**
+  - [ ] Algorithm: Generate random ship within faction aesthetic
+  - [ ] Randomize hull parameters, deck counts, room layouts
+  - [ ] Variance constraints (keep within faction look)
+  - [ ] Seed-based reproducibility
+  - **Files to create**: `src/utils/shipGenerator.ts`
+
+### Phase 11: Advanced Editor Features
+- [ ] **11.1 Undo/Redo System**
+  - [ ] Command pattern history stack
+  - [ ] Undo/redo for all mutations (Ctrl+Z/Ctrl+Y)
+  - [ ] History visualization/branch support
+  - **Files to create**: `src/utils/commandHistory.ts`
+
+- [ ] **11.2 2D Deck Drawing Tools**
+  - [ ] Bezier curve tool for complex room boundaries
+  - [ ] Freehand polygon drawing on deck
+  - [ ] Smart snapping to grid/frames
+  - [ ] Polygon boolean operations (union, subtract, intersect rooms)
+  - **Files to create**: `src/utils/polygonEditing.ts`
+
+- [ ] **11.3 Search & Filter**
+  - [ ] Global search for rooms/components by name/type
+  - [ ] Filter by deck, room type, size range
+  - [ ] Bulk operations on filtered results
+  - **Files to modify**: `ExportEditor.vue`
+
+- [ ] **11.4 Ship Comparison**
+  - [ ] Load two ships side-by-side in 3D view
+  - [ ] Highlight differences (hull shape, deck layout, room placement)
+  - [ ] Export comparison report
+  - **Files to create**: `ShipComparison.vue`
+
+### Phase 12: Validation & Simulation Hooks
+- [ ] **12.1 Design Validation Rules**
+  - [ ] Check structural integrity (bulkhead count, frame distribution)
+  - [ ] Verify crew flow (corridor connectivity, emergency egress)
+  - [ ] Validate hardpoint line-of-fire (no friendly fire zones)
+  - [ ] Power distribution (reactor placement, conduit routing)
+  - [ ] Custom rule editor
+  - **Files to create**: `src/compiler/designValidator.ts`, `ValidationEditor.vue`
+
+- [ ] **12.2 Performance Metrics**
+  - [ ] Calculate ship displacement (volume × material density)
+  - [ ] Estimate heat generation (reactor + systems)
+  - [ ] Power budget (systems consumption vs reactor output)
+  - [ ] Acceleration/agility metrics from mass distribution
+  - **Files to create**: `src/utils/shipMetrics.ts`
+
+- [ ] **12.3 Simulation Integration Hook**
+  - [ ] Export validated design to game engine format
+  - [ ] Pass ship data to physics simulator
+  - [ ] Quick launch to game preview (if external simulator available)
+  - **Files to create**: `src/utils/simulationExport.ts`
+
+### Phase 13: Collaborative & Version Control
+- [ ] **13.1 Design Snapshots**
+  - [ ] Create named save points with annotations
+  - [ ] Compare snapshots (diff view)
+  - [ ] Revert to any snapshot
+  - [ ] Snapshot branching (alternate design paths)
+
+- [ ] **13.2 External Storage & Cloud Sync**
+  - [ ] Export to GitHub gist (version control)
+  - [ ] Save to cloud storage (Google Drive, OneDrive, dropbox)
+  - [ ] Load from shared drives
+  - [ ] Conflict resolution for concurrent edits
+
+- [ ] **13.3 Collaboration Mode (Future)**
+  - [ ] Real-time multi-user editing (WebSocket)
+  - [ ] Cursor tracking for other users
+  - [ ] Chat/comments on design elements
+  - [ ] Permission levels (view, edit, admin)
 
 ---
 
-## Development Notes
+## Post-MVP Quick Wins (Low Effort, High Value)
 
-**Build System**: Vite + Vue 3 + TypeScript
-**Testing**: Vitest
-**Styling**: Tailwind CSS with ship theme
-**3D**: Three.js v0.159.0
-**State**: Pinia with reactive ship specs
-**Data Validation**: Zod schemas
-**IDE**: VS Code with Prettier + ESLint
-**Git**: Meaningful commits per feature
+These can be done in parallel with main roadmap phases:
 
-**To Run**:
-```bash
-npm install                  # Install dependencies
-npm run dev                  # Start dev server (http://localhost:5173)
-npm run test -- --run        # Run all tests (22 passing)
-npm run build                # Production build
-```
+- [ ] Export to Blender-compatible FBX (existing exporters available)
+- [ ] "Favorite" ships (star/heart button, filter in library)
+- [ ] Recent ships quick-access menu
+- [ ] Drag-drop import (drop file onto viewport)
+- [ ] Viewport screenshot/render (save 3D view as image)
+- [ ] YouTube-style ship preview link (share design on web)
+- [ ] Dark/light theme toggle
+- [ ] Metric units conversion (feet/yards, lbs/kg, etc.)
+- [ ] Mobile responsive layout (Phase 14+)
 
-**Current Status**: 
-- ✅ Phase 1 Complete
-- 🚧 Phase 2-4 Ready to Start
-- **MVP Core**: Fully Functional
-- **Browser Testing**: Verified Working
+---
+
+## Development Priorities (Recommended Sequencing)
+
+### Critical First (Essential for Interesting Ship Designs)
+1. **Phase 5.0b** - Visual Spline Editor (huge UX impact, enables creative designs)
+2. **Phase 5.0a** - Secondary Hull Editor & Management (required for multi-part ships)
+
+### High Value, Follow Immediately After
+3. **Phase 5.1** - Polygonal rooms (unlocks design flexibility)
+4. **Phase 6.1** - Bulkheads (adds structural realism)
+5. **Phase 7.1** - Window placement rules (huge visual impact)
+
+### Medium Value, Parallel Path (Alongside)
+- Phase 5.2, 5.3, 5.4 (Layout generators)
+- Phase 8.1 (Semantic export for game engines)
+- Phase 11.1 (Undo/redo - essential UX feature)
+
+### Polish & Specialization (Later, as Needed)
+- Phase 9 (Liveries/materials - cosmetic but important)
+- Phase 10 (Templates/procedural - quality-of-life)
+- Phase 12 (Validation/simulation - domain-specific)
+
+---
+
+## Known Limitations & Future Improvements
+
+### Critical Gaps (Phase 5.0 Priority)
+- **Secondary Hulls**: Type system & compiler support exists (tested), but **NO UI editor**. Cannot add/edit/delete secondary hulls from GUI.
+  - Workaround: Manual JSON editing of spec
+  - Solution: Phase 5.0a secondary hull editor component
+  
+- **Spline Editing**: Only numeric control point input available. No visual/drag-based editing.
+  - Workaround: Use numeric controls to adjust spine.points
+  - Solution: Phase 5.0b visual spline editor with canvas
+
+### Current Limitations
+- Single-hull focus in UI (secondary hulls exist but limited UI)
+- No curved bulkheads (only perpendicular to Z-axis)
+- Window placement is manual only (no rules engine)
+- No undo/redo (use browser back button)
+- No design collaboration (local-only editing)
+
+### Future Improvements
+- Performance: GPU acceleration for voxel generation
+- UX: Drag between tabs, split-screen editing
+- Export: Add STL (3D printing), COLLADA (game assets)
+- Analysis: Structural FEA, thermal simulation
+- Community: Design sharing marketplace, user templates

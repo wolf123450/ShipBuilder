@@ -39,14 +39,14 @@ export function useKeyboardShortcuts(options: KeyboardShortcutsOptions = {}) {
     // Delete - Delete selected item
     if (event.key === "Delete") {
       // Only delete if a room is selected (not for other selection types)
-      if (shipStore.selectedItemType === "room" && shipStore.selectedItemId) {
+      if (shipStore.selection.itemType === "room" && shipStore.selection.itemIds[0]) {
         event.preventDefault();
         if (options.onDelete) {
           options.onDelete();
         } else {
           // Default: delete the selected room
           const selectedRoom = shipStore.ship.rooms.find(
-            (r: any) => r.id === shipStore.selectedItemId
+            (r: any) => r.id === shipStore.selection.itemIds[0]
           );
           if (selectedRoom) {
             shipStore.deleteRoom(selectedRoom.id);
@@ -59,7 +59,7 @@ export function useKeyboardShortcuts(options: KeyboardShortcutsOptions = {}) {
 
     // Escape - Clear selection
     if (event.key === "Escape") {
-      if (shipStore.selectedItemType) {
+      if (shipStore.selection.itemType) {
         event.preventDefault();
         if (options.onClearSelection) {
           options.onClearSelection();

@@ -54,6 +54,7 @@ export const HullSpinePointSchema = z.object({
 });
 
 export const HullSpecSchema = z.object({
+  name: z.string().min(1).optional().describe("Optional name for this hull (used for secondary hulls)"),
   type: z.nativeEnum(HullType).describe("Hull type"),
   symmetry: z.nativeEnum(HullSymmetry).describe("Symmetry axis"),
   length: z.number().positive().describe("Hull length in meters"),

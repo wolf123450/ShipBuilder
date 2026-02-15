@@ -238,25 +238,60 @@ async function exportGLB() {
     // Import mesh compilation functions
     const { bakeHullMesh } = await import("@compiler/mesh");
     const { createHullVolume } = await import("@compiler/hull");
+    const { generateParametricMesh } = await import("@utils/parametricSurfaceUtils");
 
-    // Create hull volume from current spec
-    const hullVolume = createHullVolume(shipStore.shipSpec.ship.hull);
+    const hull = shipStore.shipSpec.ship.hull;
+    const algorithm = hull.generationAlgorithm;
+    const isParametric = algorithm === 'parametric_surface' || !algorithm; // default is parametric
 
-    if (!hullVolume) {
-      alert("Failed to create hull volume. Check ship hull parameters.");
-      return;
-    }
+    let geometry: THREE.BufferGeometry;
 
-    // Bake hull mesh
-    const bakedHull = bakeHullMesh({
-      hullVolume,
-      resolution: 2.0,
-      maxResolution: 60,
-    });
+    if (isParametric) {
+      // Use parametric mesh for smooth export
+      console.log('✓ Exporting parametric hull mesh');
+      const parametricMesh = generateParametricMesh(
+        hull.spine.points,
+        hull.length,
+        hull.maxBeam,
+        hull.maxHeight,
+        hull.topBias ?? 1.0,
+        (hull.sectionShape as any) ?? 'ellipse',
+        hull.shapeParams,
+        hull.spineSampleRate ?? 50,
+        64
+      );
 
-    if (!bakedHull?.geometry) {
-      alert("Failed to create hull geometry for export.");
-      return;
+      geometry = new THREE.BufferGeometry();
+      const positions = parametricMesh.vertices.flatMap(v => [v.x, v.y, v.z]);
+      const normals = parametricMesh.normals.flatMap(n => [n.x, n.y, n.z]);
+      const indices = parametricMesh.indices;
+
+      geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(positions), 3));
+      geometry.setAttribute('normal', new THREE.BufferAttribute(new Float32Array(normals), 3));
+      geometry.setIndex(new THREE.BufferAttribute(new Uint32Array(indices), 1));
+    } else {
+      // Use voxel + marching cubes for fast preview
+      console.log('✓ Exporting voxel hull mesh');
+      const hullVolume = createHullVolume(hull);
+
+      if (!hullVolume) {
+        alert("Failed to create hull volume. Check ship hull parameters.");
+        return;
+      }
+
+      // Bake hull mesh
+      const bakedHull = bakeHullMesh({
+        hullVolume,
+        resolution: 2.0,
+        maxResolution: 60,
+      });
+
+      if (!bakedHull?.geometry) {
+        alert("Failed to create hull geometry for export.");
+        return;
+      }
+
+      geometry = bakedHull.geometry;
     }
 
     const hullMaterial = new THREE.MeshPhongMaterial({
@@ -265,7 +300,7 @@ async function exportGLB() {
       side: THREE.FrontSide,
     });
 
-    const hullMesh = new THREE.Mesh(bakedHull.geometry, hullMaterial);
+    const hullMesh = new THREE.Mesh(geometry, hullMaterial);
     hullMesh.name = "Hull";
     scene.add(hullMesh);
 
