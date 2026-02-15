@@ -81,18 +81,18 @@
     <!-- Selected Object Card -->
     <div class="absolute top-4 right-80 bg-ship-navy rounded border border-ship-slate p-3 w-80">
       <div class="text-xs font-semibold text-gray-400 uppercase mb-3">Selected Object</div>
-      <div v-if="!shipStore.selectedItemType" class="text-xs text-gray-500 italic">
+      <div v-if="!shipStore.selection.itemType" class="text-xs text-gray-500 italic">
         (None - Click to select)
       </div>
       <div v-else class="space-y-2">
         <div class="flex justify-between items-start">
           <div>
             <div class="text-xs text-gray-400">Type</div>
-            <div class="text-sm text-white font-semibold capitalize">{{ shipStore.selectedItemType }}</div>
+            <div class="text-sm text-white font-semibold capitalize">{{ shipStore.selection.itemType }}</div>
           </div>
           <div>
             <div class="text-xs text-gray-400">ID</div>
-            <div class="text-sm text-white font-semibold">{{ shipStore.selectedItemId }}</div>
+            <div class="text-sm text-white font-semibold">{{ shipStore.selection.itemIds[0] || 'primary' }}</div>
           </div>
         </div>
         <button 
@@ -121,18 +121,6 @@
       </div>
       <div class="flex gap-2 text-xs">
         <label class="flex items-center gap-1 cursor-pointer">
-          <input v-model="showHull" type="checkbox" @change="meshManagement.updateMesh" class="w-3 h-3" />
-          <span>Hull</span>
-        </label>
-        <label class="flex items-center gap-1 cursor-pointer">
-          <input v-model="showDecks" type="checkbox" @change="meshManagement.updateMesh" class="w-3 h-3" />
-          <span>Decks</span>
-        </label>
-        <label class="flex items-center gap-1 cursor-pointer">
-          <input v-model="showRooms" type="checkbox" @change="meshManagement.updateMesh" class="w-3 h-3" />
-          <span>Rooms</span>
-        </label>
-        <label class="flex items-center gap-1 cursor-pointer">
           <input v-model="showNormals" type="checkbox" @change="meshManagement.updateNormals" class="w-3 h-3" />
           <span>Normals (Debug)</span>
         </label>
@@ -154,7 +142,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch } from 'vue';
+import { ref, onMounted, onUnmounted, watch, computed } from 'vue';
 import { useShipStore } from '@stores/shipStore';
 import { useSceneSetup } from './composables/useSceneSetup';
 import { useCameraControls } from './composables/useCameraControls';
@@ -169,10 +157,22 @@ const cameraPanelContainer = ref<HTMLDivElement | null>(null);
 
 // UI state
 const meshResolution = ref(2.0);
-const showHull = ref(true);
-const showDecks = ref(true);
-const showRooms = ref(true);
-const showNormals = ref(false);
+const showHull = computed({
+  get: () => shipStore.visibility.hull,
+  set: (val) => { shipStore.visibility.hull = val; }
+});
+const showDecks = computed({
+  get: () => shipStore.visibility.decks,
+  set: (val) => { shipStore.visibility.decks = val; }
+});
+const showRooms = computed({
+  get: () => shipStore.visibility.rooms,
+  set: (val) => { shipStore.visibility.rooms = val; }
+});
+const showNormals = computed({
+  get: () => shipStore.visibility.normals,
+  set: (val) => { shipStore.visibility.normals = val; }
+});
 const showCameraPanel = ref(false);
 const animationDuration = ref(1.5);
 
@@ -262,18 +262,23 @@ watch(
   }
 );
 
-watch(() => shipStore.shipSpec.ship.hull, () => {
-  meshManagement.updateMesh();
-});
+watch(
+  () => shipStore.shipSpec.ship.hull,
+  () => {
+    meshManagement.updateMesh();
+  },
+  { deep: true }
+);
 
 /**
  * Watch for selection changes to update outlines
  */
 watch(
-  () => [shipStore.selectedItemType, shipStore.selectedItemId],
+  () => [shipStore.selection.itemType, shipStore.selection.itemIds],
   () => {
     selection.updateSelectionOutlines();
-  }
+  },
+  { deep: true }
 );
 
 /**
@@ -282,7 +287,7 @@ watch(
 watch(
   () => showHull.value,
   (visible) => {
-    if (!visible && shipStore.selectedItemType === 'hull') {
+    if (!visible && shipStore.selection.itemType === 'hull') {
       shipStore.clearSelection();
       selection.updateSelectionOutlines();
     }
@@ -292,7 +297,7 @@ watch(
 watch(
   () => showDecks.value,
   (visible) => {
-    if (!visible && shipStore.selectedItemType === 'deck') {
+    if (!visible && shipStore.selection.itemType === 'deck') {
       shipStore.clearSelection();
       selection.updateSelectionOutlines();
     }
@@ -302,11 +307,22 @@ watch(
 watch(
   () => showRooms.value,
   (visible) => {
-    if (!visible && shipStore.selectedItemType === 'room') {
+    if (!visible && shipStore.selection.itemType === 'room') {
       shipStore.clearSelection();
       selection.updateSelectionOutlines();
     }
   }
+);
+
+/**
+ * Watch for visibility state changes to update meshes
+ */
+watch(
+  () => shipStore.visibility,
+  () => {
+    meshManagement.updateMesh();
+  },
+  { deep: true }
 );
 
 onMounted(() => {

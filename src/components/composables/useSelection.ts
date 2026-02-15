@@ -6,6 +6,7 @@ export function useSelection(scene: any, hullMesh: any, deckMeshes: any, roomMes
   const shipStore = useShipStore();
 
   let hullOutline: THREE.LineSegments | null = null;
+  let secondaryHullOutlines: Map<string, THREE.LineSegments> = new Map();
   let deckOutlines: THREE.LineSegments[] = [];
   let roomOutlines: Map<THREE.Mesh, THREE.LineSegments> = new Map();
 
@@ -22,47 +23,63 @@ export function useSelection(scene: any, hullMesh: any, deckMeshes: any, roomMes
       hullOutline = null;
     }
 
+    secondaryHullOutlines.forEach((outline) => sceneInstance.remove(outline));
+    secondaryHullOutlines.clear();
+
     deckOutlines.forEach((outline) => sceneInstance.remove(outline));
     deckOutlines = [];
 
     roomOutlines.forEach((outline) => sceneInstance.remove(outline));
     roomOutlines.clear();
 
-    // Add outlines for selected item
+    // Add outlines for selected item(s)
     const hullMeshInstance = hullMesh();
     const deckMeshesArray = deckMeshes();
     const roomMeshesArray = roomMeshes();
 
-    if (shipStore.selectedItemType === 'hull' && hullMeshInstance) {
+    const itemType = shipStore.selection.itemType;
+    const itemIds = shipStore.selection.itemIds;
+
+    // Handle hull selection(s)
+    if ((itemType === 'hull' || itemType === 'all-hulls') && hullMeshInstance && itemIds.includes('primary')) {
       hullOutline = createOutlineMesh(hullMeshInstance.geometry as THREE.BufferGeometry, 0x00ff00);
       if (hullOutline) {
         hullOutline.position.copy(hullMeshInstance.position);
         sceneInstance.add(hullOutline);
       }
-    } else if (shipStore.selectedItemType === 'deck' && shipStore.selectedItemId) {
-      // Find and highlight the selected deck
-      const deckIndex = parseInt(shipStore.selectedItemId);
-      deckMeshesArray.forEach((mesh: THREE.Mesh, idx: number) => {
-        if (idx === deckIndex) {
+    }
+
+    // Handle deck selection(s)
+    if (itemType === 'deck' || itemType === 'all-decks') {
+      itemIds.forEach((id) => {
+        const deckIndex = parseInt(id);
+        if (!isNaN(deckIndex) && deckIndex < deckMeshesArray.length) {
+          const mesh = deckMeshesArray[deckIndex];
           const outline = createOutlineMesh(mesh.geometry as THREE.BufferGeometry, 0x00ff00);
           outline.position.copy(mesh.position);
           sceneInstance.add(outline);
           deckOutlines.push(outline);
         }
       });
-    } else if (shipStore.selectedItemType === 'room' && shipStore.selectedItemId) {
-      // Find and highlight the selected room
+    }
+
+    // Handle room selection(s)
+    if (itemType === 'room' || itemType === 'all-rooms') {
       roomMeshesArray.forEach((mesh: THREE.Mesh) => {
-        const outline = createOutlineMesh(mesh.geometry as THREE.BufferGeometry, 0x00ff00);
-        outline.position.copy(mesh.position);
-        sceneInstance.add(outline);
-        roomOutlines.set(mesh, outline);
+        const roomId = mesh.userData.roomId || '';
+        if (itemIds.includes(roomId)) {
+          const outline = createOutlineMesh(mesh.geometry as THREE.BufferGeometry, 0x00ff00);
+          outline.position.copy(mesh.position);
+          sceneInstance.add(outline);
+          roomOutlines.set(mesh, outline);
+        }
       });
     }
   }
 
   return {
     hullOutline,
+    secondaryHullOutlines,
     deckOutlines,
     roomOutlines,
     updateSelectionOutlines,

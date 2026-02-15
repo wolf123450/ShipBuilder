@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import { useShipStore } from '@stores/shipStore';
 import { bakeHullMesh, createPolygonMesh, createRoomMesh } from '@compiler/mesh';
 import { createHullVolume } from '@compiler/hull';
+import { generateParametricMesh } from '@utils/parametricSurfaceUtils';
 
 export function useMeshManagement(
   scene: any,
@@ -114,14 +115,51 @@ export function useMeshManagement(
     if (showHull.value) {
       try {
         console.log('Starting hull mesh generation...');
-        const bakedHull = bakeHullMesh({
-          hullVolume: createHullVolumeFromSpec(shipStore.shipSpec),
-          hullSpec: shipStore.shipSpec.ship.hull, // Pass hull spec for caching
-          resolution: meshResolution.value,
-          maxResolution: 60,
-        });
+        
+        const algorithm = shipStore.shipSpec.ship.hull.generationAlgorithm;
+        const isParametric = algorithm === 'parametric_surface' || !algorithm; // default is parametric
+        
+        let geometry: THREE.BufferGeometry;
+        
+        if (isParametric) {
+          // Use direct parametric mesh generation for smooth surfaces
+          console.log('✓ Generating parametric lofted mesh (smooth)');
+          const hull = shipStore.shipSpec.ship.hull;
+          const parametricMesh = generateParametricMesh(
+            hull.spine.points,
+            hull.length,
+            hull.maxBeam,
+            hull.maxHeight,
+            hull.topBias ?? 1.0,
+            (hull.sectionShape as any) ?? 'ellipse',
+            hull.shapeParams,
+            hull.spineSampleRate ?? 50,
+            64 // Cross-section samples for smooth curves
+          );
+          
+          // Convert to THREE.BufferGeometry
+          geometry = new THREE.BufferGeometry();
+          const positions = parametricMesh.vertices.flatMap(v => [v.x, v.y, v.z]);
+          const normals = parametricMesh.normals.flatMap(n => [n.x, n.y, n.z]);
+          const indices = parametricMesh.indices;
+          
+          geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(positions), 3));
+          geometry.setAttribute('normal', new THREE.BufferAttribute(new Float32Array(normals), 3));
+          geometry.setIndex(new THREE.BufferAttribute(new Uint32Array(indices), 1));
+        } else {
+          // Use voxel + marching cubes for fast preview
+          console.log('✓ Generating voxel mesh (fast preview)');
+          const resolution = meshResolution.value;
+          const bakedHull = bakeHullMesh({
+            hullVolume: createHullVolumeFromSpec(shipStore.shipSpec),
+            hullSpec: shipStore.shipSpec.ship.hull,
+            resolution: resolution,
+            maxResolution: 120,
+          });
+          geometry = bakedHull.geometry;
+        }
 
-        console.log('Hull mesh generated, geometry has ', bakedHull.geometry.getAttribute('position')?.count, ' vertices');
+        console.log('Hull mesh generated, geometry has ', geometry.getAttribute('position')?.count, ' vertices');
 
         const material = new THREE.MeshPhongMaterial({
           color: 0x3b82f6,
@@ -130,16 +168,16 @@ export function useMeshManagement(
           flatShading: false,
         });
 
-        hullMesh = new THREE.Mesh(bakedHull.geometry, material);
+        hullMesh = new THREE.Mesh(geometry, material);
         hullMesh.castShadow = true;
         hullMesh.receiveShadow = true;
         sceneInstance.add(hullMesh);
 
-        meshVertexCount.value = (bakedHull.geometry.getAttribute('position').array as Float32Array).length / 3;
+        meshVertexCount.value = (geometry.getAttribute('position').array as Float32Array).length / 3;
         console.log('Hull mesh added to scene, vertex count:', meshVertexCount.value);
 
         // Calculate and store hull center from geometry positions
-        const posAttr = bakedHull.geometry.getAttribute('position');
+        const posAttr = geometry.getAttribute('position');
         if (posAttr) {
           const bbox = new THREE.Box3();
           const vertex = new THREE.Vector3();
@@ -173,6 +211,12 @@ export function useMeshManagement(
     // Create deck footprint meshes
     if (showDecks.value) {
       for (const deck of shipStore.derivedData.deckFootprints) {
+        // Skip if this specific deck is hidden
+        if (!shipStore.isDeckVisible(deck.deckIndex)) {
+          deckCenters.push(new THREE.Vector3(0, 0, 0));
+          continue;
+        }
+
         try {
           const geometry = createPolygonMesh(deck.polygon, deck.yMin, 0.1);
           const material = new THREE.MeshPhongMaterial({
@@ -217,7 +261,17 @@ export function useMeshManagement(
 
     // Create room meshes
     if (showRooms.value) {
-      for (const room of shipStore.derivedData.validatedRooms) {
+      // Create a set of valid room IDs for quick lookup
+      const validRoomIds = new Set(shipStore.derivedData.validatedRooms.map(r => r.id));
+      
+      for (const room of shipStore.ship.rooms) {
+        // Skip if this specific room is hidden
+        if (!shipStore.isRoomVisible(room.id)) {
+          continue;
+        }
+
+        const isValid = validRoomIds.has(room.id);
+
         try {
           // Get the deck for this room to determine Y position
           const deck = shipStore.derivedData.deckFootprints.find((d) => d.deckIndex === room.deck);
@@ -229,24 +283,36 @@ export function useMeshManagement(
           const [width, depth] = room.shape.size;
           const geometry = createRoomMesh(room.position.x, room.position.z, width, depth, deck.yMin, deck.yMax);
 
-          const colors: Record<string, number> = {
-            command: 0xff6b6b,
-            crew: 0x4ecdc4,
-            cargo: 0xffe66d,
-            corridor: 0xa8dadc,
-            engineering: 0xf4a261,
-          };
-
-          const color = colors[room.type] || 0xcccccc;
+          let color: number;
+          let opacity: number;
+          
+          if (!isValid) {
+            // Invalid room - use error color (red) and make it more transparent
+            color = 0xff0000; // Red
+            opacity = 0.4;
+          } else {
+            const colors: Record<string, number> = {
+              command: 0xff6b6b,
+              crew: 0x4ecdc4,
+              cargo: 0xffe66d,
+              corridor: 0xa8dadc,
+              engineering: 0xf4a261,
+            };
+            color = colors[room.type] || 0xcccccc;
+            opacity = 0.7;
+          }
+          
           const material = new THREE.MeshPhongMaterial({
             color,
             transparent: true,
-            opacity: 0.7,
+            opacity,
           });
 
           const mesh = new THREE.Mesh(geometry, material);
           mesh.castShadow = true;
           mesh.receiveShadow = true;
+          mesh.userData.roomId = room.id;
+          mesh.userData.isInvalid = !isValid;
           sceneInstance.add(mesh);
           roomMeshes.push(mesh);
 
