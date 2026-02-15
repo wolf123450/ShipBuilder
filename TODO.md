@@ -86,9 +86,86 @@ ship.hulls: HullInstance[] = [
 
 ---
 
+#### Phase 5.0c: UI Enhancements & Mesh Transform Support (COMPLETE - Feb 15, 2026)
+
+**Completed Features**:
+- ✅ HullInstanceEditor.vue with improved UX:
+  - Hull selector list at top (⚓/🛰️ icons with enabled toggles)
+  - 5 collapsible sections (metadata, hull profile, position & orientation, boolean ops, actions)
+  - Full hull parameter editing (length, maxBeam, maxHeight, topBias, hasInteriorDecks)
+  - Real-time 3D mesh updates on parameter changes
+- ✅ Custom NumberInput.vue component:
+  - Themed spinner buttons with hover/active states
+  - Min/max constraint enforcement
+  - Replaces browser defaults with polished UI
+- ✅ Mesh transform application:
+  - Position, rotation, scale applied to both primary and secondary hulls
+  - Selection outlines inherit transforms for accurate highlighting
+  - Real-time updates when transform values change
+- ✅ Enhanced selection system:
+  - Raycast against secondary hull meshes for clickable selection
+  - Click any hull in 3D to select and edit
+  - Green outline highlights with proper transforms applied
+- ✅ Clean data watcher on unified hulls array in Preview3D
+
+**Files Modified/Created**:
+- `src/components/editors/HullInstanceEditor.vue` - New improved editor component (800+ lines)
+- `src/components/NumberInput.vue` - New custom input component
+- `src/components/composables/useMeshManagement.ts` - Apply transforms to primary hull
+- `src/components/composables/useSelection.ts` - Apply transforms to outline meshes
+- `src/components/composables/useRaycasting.ts` - Include secondary hulls in raycast
+- `src/components/composables/useInputHandlers.ts` - Pass hull IDs on selection
+- `src/components/Preview3D.vue` - Watcher for unified hulls array
+- `AGENTS.md` - Updated build validation workflow
+
+**Status**: ✅ COMPLETE & USER TESTED
+
+---
+
+#### Phase 5.0d: Boolean Mesh Operations (NEXT)
+
+**Goal**: Combine meshes using union/difference/intersection operations.
+
+**Design**:
+- Process hulls in render order, combining by `booleanOp` field
+- Hull marked "union" adds to result
+- Hull marked "difference" subtracts from result  
+- Hull marked "intersection" keeps only overlap
+- Real-time updates as user changes boolean operations
+
+**Implementation Approach**:
+1. Investigate Three.js CSG (Constructive Solid Geometry) libraries
+2. Create `useBooleanOperations.ts` composable
+3. Update mesh generation to apply boolean ops before rendering
+4. Cache results for performance (prevent recomputing every frame)
+5. Test with various hull combinations
+
+**Estimated Effort**: 4-6 hours
+
+**Blockers**: None - can start immediately
+
+---
+
+#### Phase 5.0e: Hull Type Flexibility (AFTER 5.0d)
+
+**Goal**: Support cubic, conic, and other hull shapes beyond parametric.
+
+**Design**:
+- Add `type: 'parametric' | 'cubic' | 'conic'` field to HullInstance
+- Implement mesh generators for each type
+- UI dropdown to select hull type during creation
+
+**Estimated Effort**: 8-10 hours
+
+---
+
+#### OLD CONTENT (Archive - being replaced)
+
+---
+
 #### Phase 5.0c: Unified Hull Data Model & Basic Rendering
 
-**Goal**: Get all hulls rendering from single `ship.hulls[]` array. No boolean ops yet.
+(This section has been moved above as Phase 5.0c is now complete)
 
 **Implementation Checkpoint 1: Update Types** ✅
 - [x] Add `HullInstance` interface with fields: `id`, `name`, `isPrimary`, `hullSpec`, `worldTransform`, `booleanOp`, `enabled`
