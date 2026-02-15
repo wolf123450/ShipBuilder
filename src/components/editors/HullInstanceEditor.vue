@@ -2,7 +2,12 @@
   <div class="hull-instance-editor">
     <!-- Hull selector list -->
     <div class="hull-selector">
-      <h3>Hulls</h3>
+      <div class="hull-selector-header">
+        <h3>Hulls</h3>
+        <button class="btn-add-hull" @click="handleAddHull" title="Add a new secondary hull">
+          ➕ Add Hull
+        </button>
+      </div>
       <div class="hull-list">
         <div
           v-for="hull in allHulls"
@@ -593,6 +598,42 @@ function handleReset() {
 }
 
 /**
+ * Add a new secondary hull
+ */
+function handleAddHull() {
+  const newHull: HullInstance = {
+    id: `secondary-${Date.now()}`,
+    name: `Hull ${allHulls.value.length}`,
+    isPrimary: false,
+    enabled: true,
+    hullSpec: {
+      // Copy from primary hull as template
+      ...JSON.parse(JSON.stringify(store.getPrimaryHull()?.hullSpec || {
+        spine: { points: [{ x: 0, y: 0, z: 0 }, { x: 0, y: 10, z: 0 }] },
+        length: 100,
+        maxBeam: 20,
+        maxHeight: 15,
+        topBias: 1.0,
+        generationAlgorithm: 'parametric_surface',
+        sectionShape: 'ellipse',
+        shapeParams: {},
+        spineSampleRate: 50,
+        hasInteriorDecks: false,
+      }))
+    },
+    worldTransform: {
+      position: { x: 0, y: 0, z: 0 },
+      rotation: { x: 0, y: 0, z: 0 },
+      scale: 1.0,
+    },
+    booleanOp: BooleanOperation.Union,
+  };
+
+  store.addHull(newHull);
+  store.selectItem('hull', newHull.id, false);
+}
+
+/**
  * Delete the hull (with confirmation)
  */
 function handleDelete() {
@@ -641,13 +682,44 @@ const deleteMessage = computed(() => {
   border-radius: 6px;
 }
 
-.hull-selector h3 {
-  margin: 0 0 0.5rem 0;
+.hull-selector-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.hull-selector-header h3 {
+  margin: 0;
   font-size: 0.9rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--color-primary);
+}
+
+.btn-add-hull {
+  padding: 0.4rem 0.8rem;
+  border: 1px solid var(--color-primary);
+  border-radius: 4px;
+  background-color: var(--color-background-tertiary);
+  color: var(--color-primary);
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.btn-add-hull:hover {
+  background-color: var(--color-primary);
+  color: white;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+}
+
+.btn-add-hull:active {
+  transform: scale(0.98);
 }
 
 .hull-list {
@@ -842,6 +914,8 @@ const deleteMessage = computed(() => {
   display: flex;
   gap: 0.5rem;
   align-items: center;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .slider {

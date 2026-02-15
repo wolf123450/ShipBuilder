@@ -63,10 +63,13 @@ function decrement() {
   display: flex;
   align-items: center;
   gap: 0;
+  min-width: 0;
+  width: auto;
 }
 
 .number-input {
   flex: 1;
+  min-width: 3.5rem;
   padding: 0.5rem;
   border: 1px solid var(--color-border);
   border-radius: 4px 0 0 4px;
