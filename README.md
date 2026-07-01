@@ -1,5 +1,7 @@
 # Ship Design Toolkit
 
+> **Status: Working but incomplete.** Core workflow (Hull → Decks → Rooms → Export) is functional. Some planned features are unfinished. See [TODO.md](TODO.md) for current state.
+
 A structured spaceship design toolkit for creating exportable, engine-agnostic geometry.
 
 ## Overview
