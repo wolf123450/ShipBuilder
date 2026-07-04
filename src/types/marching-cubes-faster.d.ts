@@ -62,3 +62,4 @@ declare module "marching-cubes-faster" {
   };
 
   export default mfc;
+}

@@ -25,9 +25,9 @@ export default defineConfig({
     sourcemap: true,
     rollupOptions: {
       output: {
-        manualChunks: {
-          three: ["three"],
-          vendor: ["vue", "pinia", "zod"],
+        manualChunks: (id) => {
+          if (id.includes("node_modules/three")) return "three";
+          if (id.includes("node_modules/vue") || id.includes("node_modules/pinia") || id.includes("node_modules/zod")) return "vendor";
         },
       },
     },
